@@ -19,9 +19,7 @@ Color Studio - Rémi Cozot 2019
 # ----------------------------------------------------------------------------------
 import sys
 
-import easygui
-
-from PyQt5.QtWidgets import QApplication
+from PyQt6.QtWidgets import QApplication, QFileDialog
 
 import colorStudioModel
 import colorStudioWidget
@@ -42,12 +40,19 @@ if not app:  app = QApplication(sys.argv)
 
 # select input file name
 defaultFilename = "./xml-2019-6-7-22-47-1.xml" 
-inputFilename =  easygui.fileopenbox(msg="select light-settup file",title="Color Studio",default='xml*.xml',filetypes=["*.xml","xml files"],multiple=False)
+inputFilename, _ = QFileDialog.getOpenFileName(
+    None,                                   
+    "Color Studio - Select light-setup file", 
+    "",                                     
+    "XML files (*.xml);;All files (*.*)"   
+)
 print("ColorStudio: inuput file>",inputFilename)
 
-if inputFilename == None: 
-    inputFilename= defaultFilename
-    print("ColorStudio: inuput file>",inputFilename)
+if not inputFilename: 
+    inputFilename = defaultFilename
+    print("ColorStudio: action annulée, utilisation du fichier par défaut >", inputFilename)
+else:
+    print("ColorStudio: input file >", inputFilename)
 
 
 # scene object
@@ -61,5 +66,5 @@ lightsScene.print()
 ui = colorStudioUIBuilder.CSUIAllBuilder(lightsScene)
 
 # run app for event management
-app.exec_()
+app.exec()
 
