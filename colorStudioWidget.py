@@ -26,9 +26,10 @@ import math
 import numpy as np
 import skimage
 
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QSlider
-from PyQt5.QtGui import QIcon, QPixmap, QImage
-from PyQt5 import QtCore, QtOpenGL 
+from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QSlider
+from PyQt6.QtGui import QIcon, QPixmap, QImage, QSurfaceFormat
+from PyQt6 import QtCore
+from PyQt6.QtOpenGLWidgets import QOpenGLWidget
 
 import colorStudioModel
 import colorStudioUtils
@@ -51,14 +52,14 @@ def getScreenSize():
 # ----------------------------------------------------------------------------------
 # classes
 # ----------------------------------------------------------------------------------
-class QModernGLWidget(QtOpenGL.QGLWidget):
+class QModernGLWidget(QOpenGLWidget):
     def __init__(self):
-        fmt = QtOpenGL.QGLFormat()
+        super(QModernGLWidget, self).__init__()
+        fmt = QSurfaceFormat()
         fmt.setVersion(3, 3)
-        fmt.setProfile(QtOpenGL.QGLFormat.CoreProfile)
-        fmt.setSampleBuffers(True)
+        fmt.setProfile(QSurfaceFormat.OpenGLContextProfile.CoreProfile)
+        fmt.setSamples(4)
         self.timer = QtCore.QElapsedTimer()
-        super(QModernGLWidget, self).__init__(fmt, None)
 
     def initializeGL(self):
         pass
@@ -274,7 +275,7 @@ class CSQLightControlLayout(QHBoxLayout):
         self._ieButton = CSQIMGButton(uiIEIMG,(50,50),name="increase exposure button")
         self._ccButton = CSQIMGButton(uiCCIMG,(50,50),name="light color  button")
         self._exposureValueLabel = QLabel("+0.00")
-        self._sliderPosition = QSlider(QtCore.Qt.Horizontal)
+        self._sliderPosition = QSlider(QtCore.Qt.Orientation.Horizontal)
         self._sliderPosition.setValue(lightPosIdx)
         # control of Exposure
         self._step 	= stepE
@@ -294,6 +295,10 @@ class CSQLightControlLayout(QHBoxLayout):
 
         # slider
         self._sliderPosition.valueChanged.connect(self.sliderValueChanged) 
+        self._exposureValueLabel = QLabel("+0.00")
+        
+        self._sliderPosition = QSlider(QtCore.Qt.Orientation.Horizontal) 
+        self._sliderPosition.setValue(lightPosIdx)
 
     def incExposure(self):
         self._exposure = self._exposure + self._step
@@ -419,7 +424,7 @@ class CSDisplayWidget(QWidget):
         img = (np.ones((h,w,3))*255).astype(np.uint8)
         height, width, channel = img.shape
         bytesPerLine = channel * width
-        qImg = QImage(img, width, height, bytesPerLine, QImage.Format_RGB888)
+        qImg = QImage(img, width, height, bytesPerLine, QImage.Format.Format_RGB888)       
         pixmap = QPixmap.fromImage(qImg)
         self._label.setPixmap(pixmap)
 
@@ -427,7 +432,7 @@ class CSDisplayWidget(QWidget):
         img = (imgDouble*255).astype(np.uint8)
         height, width, channel = img.shape
         bytesPerLine = channel * width
-        qImg = QImage(img, width, height, bytesPerLine, QImage.Format_RGB888)
+        qImg = QImage(img, width, height, bytesPerLine, QImage.Format.Format_RGB888)
         pixmap = QPixmap.fromImage(qImg)
         self._label.setPixmap(pixmap)
 # ----------------------------------------------------------------------------------		
@@ -449,7 +454,7 @@ class CSDisplayColorWheel(QWidget):
         colorWheelImg = (colorStudioUtils.colorWheel(self._width//2)*255).astype(np.uint8)
         height, width, channel = colorWheelImg.shape
         bytesPerLine = channel * width
-        qImg = QImage(colorWheelImg, width, height, bytesPerLine, QImage.Format_RGB888)
+        qImg = QImage(colorWheelImg, width, height, bytesPerLine, QImage.Format.Format_RGB888)
 
         # store pixmap in object
         self._pixmap = QPixmap.fromImage(qImg)
@@ -517,11 +522,11 @@ class CSQSaturationLayout(QVBoxLayout):
 
         # create 
         self._linearSaturationValueLabel = QLabel("linear saturation: "+"{:+.0f}".format(self._linearSaturation))
-        self._sliderLinearSaturation = QSlider(QtCore.Qt.Horizontal)
+        self._sliderLinearSaturation = QSlider(QtCore.Qt.Orientation.Horizontal)
         self._sliderLinearSaturation.setValue(50)
 
         self._gammaSaturationValueLabel = QLabel("gamma saturation: "+"{:+.0f}".format(self._gammaSaturation))
-        self._sliderGammaSaturation = QSlider(QtCore.Qt.Horizontal)
+        self._sliderGammaSaturation = QSlider(QtCore.Qt.Orientation.Horizontal)
         self._sliderGammaSaturation.setValue(50)
 
         # add  to layout
