@@ -1,0 +1,86 @@
+<LIGHTSETTUP>
+	<LIGHTS>
+		<LIGHT name="Light0">
+			<INPUTFILE ext=".jpg" min="0" max="100"  digit="4" >./images/museum2x2/light01_</INPUTFILE>
+			<IDXPOS>76</IDXPOS>
+			<EXP>0.0</EXP>
+			<COLOR format="float">
+				<R>1.0</R>
+				<G>1.0</G>
+				<B>1.0</B>
+			</COLOR>
+		</LIGHT>
+		<LIGHT name="Light1">
+			<INPUTFILE ext=".jpg" min="0" max="100"  digit="4" >./images/museum2x2/light01_</INPUTFILE>
+			<IDXPOS>37</IDXPOS>
+			<EXP>0.0</EXP>
+			<COLOR format="float">
+				<R>0.01</R>
+				<G>0.01</G>
+				<B>0.01</B>
+			</COLOR>
+		</LIGHT>
+		<LIGHT name="Light2">
+			<INPUTFILE ext=".jpg" min="0" max="100"  digit="4" >./images/museum2x2/light01_</INPUTFILE>
+			<IDXPOS>51</IDXPOS>
+			<EXP>0.0</EXP>
+			<COLOR format="float">
+				<R>0.01</R>
+				<G>0.01</G>
+				<B>0.01</B>
+			</COLOR>
+		</LIGHT>
+		<LIGHT name="Light3">
+			<INPUTFILE ext=".jpg" min="0" max="100"  digit="4" >./images/museum2x2/light02_</INPUTFILE>
+			<IDXPOS>20</IDXPOS>
+			<EXP>0.0</EXP>
+			<COLOR format="float">
+				<R>1.0</R>
+				<G>1.0</G>
+				<B>1.0</B>
+			</COLOR>
+		</LIGHT>
+		<LIGHT name="Light4">
+			<INPUTFILE ext=".jpg" min="0" max="100"  digit="4" >./images/museum2x2/light02_</INPUTFILE>
+			<IDXPOS>41</IDXPOS>
+			<EXP>0.0</EXP>
+			<COLOR format="float">
+				<R>0.01</R>
+				<G>0.01</G>
+				<B>0.01</B>
+			</COLOR>
+		</LIGHT>
+		<LIGHT name="Light5">
+			<INPUTFILE ext=".jpg" min="0" max="100"  digit="4" >./images/museum2x2/light02_</INPUTFILE>
+			<IDXPOS>0</IDXPOS>
+			<EXP>0.0</EXP>
+			<COLOR format="float">
+				<R>0.01</R>
+				<G>0.01</G>
+				<B>0.01</B>
+			</COLOR>
+		</LIGHT>
+	</LIGHTS>
+  <POSTPROCESSES>
+    <POSTPROCESS name="white balance">
+      <CHROMA type="AWB">
+        <COLOR format="float">
+          <R>1.0</R>
+          <G>1.0</G>
+          <B>1.0</B>
+        </COLOR>
+      </CHROMA>
+    </POSTPROCESS>
+    <POSTPROCESS name="auto exposure">
+      <LUMINANCE type="AE">
+        <Y>0.5</Y>
+      </LUMINANCE>
+    </POSTPROCESS>
+    <POSTPROCESS name="gamma">
+      <LUMINANCE type="GAMMA">
+        <GAMMA>1.2</GAMMA>
+      </LUMINANCE>
+    </POSTPROCESS>
+  </POSTPROCESSES>
+	<RENDERFILE>render-2019-6-7-22-47-1.jpg</RENDERFILE>
+</LIGHTSETTUP>

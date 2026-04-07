@@ -1,0 +1,65 @@
+<LIGHTSETTUP>
+<LIGHTS>
+<LIGHT name="Light0">
+<INPUTFILE ext=".jpg" min="0" max="100"  digit="4" >./images/museum2x2/light01_</INPUTFILE>
+<IDXPOS>37</IDXPOS>
+<EXP>0.0</EXP>
+<COLOR format="float">
+<R>1.0</R>
+<G>0.5461730707073686</G>
+<B>0.0</B>
+</COLOR>
+</LIGHT>
+<LIGHT name="Light1">
+<INPUTFILE ext=".jpg" min="0" max="100"  digit="4" >./images/museum2x2/light01_</INPUTFILE>
+<IDXPOS>78</IDXPOS>
+<EXP>0.0</EXP>
+<COLOR format="float">
+<R>0.0</R>
+<G>0.2723073820170625</G>
+<B>1.0</B>
+</COLOR>
+</LIGHT>
+<LIGHT name="Light2">
+<INPUTFILE ext=".jpg" min="0" max="100"  digit="4" >./images/museum2x2/light01_</INPUTFILE>
+<IDXPOS>48</IDXPOS>
+<EXP>-0.8</EXP>
+<COLOR format="float">
+<R>1.0</R>
+<G>1.0</G>
+<B>1.0</B>
+</COLOR>
+</LIGHT>
+<LIGHT name="Light3">
+<INPUTFILE ext=".jpg" min="0" max="100"  digit="4" >./images/museum2x2/light02_</INPUTFILE>
+<IDXPOS>22</IDXPOS>
+<EXP>0.0</EXP>
+<COLOR format="float">
+<R>1.0</R>
+<G>0.5710937034418088</G>
+<B>0.0</B>
+</COLOR>
+</LIGHT>
+<LIGHT name="Light4">
+<INPUTFILE ext=".jpg" min="0" max="100"  digit="4" >./images/museum2x2/light02_</INPUTFILE>
+<IDXPOS>77</IDXPOS>
+<EXP>0.0</EXP>
+<COLOR format="float">
+<R>0.0</R>
+<G>0.3047683663179215</G>
+<B>1.0</B>
+</COLOR>
+</LIGHT>
+<LIGHT name="Light5">
+<INPUTFILE ext=".jpg" min="0" max="100"  digit="4" >./images/museum2x2/light02_</INPUTFILE>
+<IDXPOS>0</IDXPOS>
+<EXP>0.0</EXP>
+<COLOR format="float">
+<R>0.01</R>
+<G>0.01</G>
+<B>0.01</B>
+</COLOR>
+</LIGHT>
+</LIGHTS>
+<RENDERFILE>render-2019-6-6-15-28-37.jpg</RENDERFILE>
+</LIGHTSETTUP>

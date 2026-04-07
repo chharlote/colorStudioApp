@@ -1,0 +1,41 @@
+<LIGHTSETTUP>
+	<LIGHTS>
+		<LIGHT name="Light0">
+			<INPUTFILE ext=".jpg" min="0" max="100"  digit="4" >./images/museum2x2/light01_</INPUTFILE>
+			<IDXPOS>25</IDXPOS>
+			<EXP>0.0</EXP>
+			<COLOR format="float">
+				<R>1.0</R>
+				<G>1.0</G>
+				<B>1.0</B>
+			</COLOR>
+		</LIGHT>
+	</LIGHTS>
+  <POSTPROCESSES>
+    <POSTPROCESS name="saturation">
+      <CHROMA type="SATURATION">
+        <S>1.5</S>
+      </CHROMA>
+    </POSTPROCESS>
+    <POSTPROCESS name="white balance">
+        <CHROMA type="AWB">
+        <COLOR format="float">
+          <R>1.0</R>
+          <G>1.0</G>
+          <B>1.0</B>
+        </COLOR>
+      </CHROMA>
+    </POSTPROCESS>
+    <POSTPROCESS name="auto exposure">
+      <LUMINANCE type="AE">
+        <Y>0.5</Y>
+      </LUMINANCE>
+    </POSTPROCESS>
+    <POSTPROCESS name="gamma">
+      <LUMINANCE type="GAMMA">
+        <GAMMA>1.2</GAMMA>
+      </LUMINANCE>
+    </POSTPROCESS>
+  </POSTPROCESSES>
+	<RENDERFILE>render-2019-6-7-22-47-1.jpg</RENDERFILE>
+</LIGHTSETTUP>
