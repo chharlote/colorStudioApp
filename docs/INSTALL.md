@@ -4,6 +4,7 @@ title: Installation
 
 # Installation de Color Studio
 
+
 ## Prérequis
 
 - Python 3.8 (64 bits recommandé)
