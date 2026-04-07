@@ -15,8 +15,7 @@ from colorStudioUtils import loadImage, printProgressBar, image2Ymean
 import math
 import numpy as np
 import skimage
-
-import xml.dom.minidom as miniXml
+import json
 
 # ----------------------------------------------------------------------------------
 # Class(es)
@@ -146,35 +145,6 @@ class Light:
 			"color:","[ r:",self._npColorRGB[0],", g:",self._npColorRGB[1],",b:",self._npColorRGB[2],"]",   \
 		"]")
 
-	def toXML(self):
-		
-		lightMark = "LIGHT"
-		inputFileMark = "INPUTFILE"
-		idxPosMark = "IDXPOS"
-		expMark = "EXP"
-		colorMark ="COLOR"
-		rMark = "R"
-		gMark ="G"
-		bMark = "B"
-		
-		outString ="<"+lightMark+" name=\""+self._name+"\""+">"+"\n"+ \
-			"<"+inputFileMark+ \
-			" ext=\"" + \
-			self.ImagesArray._extImageName+ \
-			"\" min=\"0\" max=\""+str(self._ImagesArray._nbImage)+"\" "+ \
-			" digit=\""+ str(self._ImagesArray._nbDigit) + "\" >" + \
-			self._ImagesArray._pathImage+self._ImagesArray._baseImageName+ \
-			"</"+inputFileMark+">"+"\n"+ \
-			"<"+idxPosMark+">"+ str(self._imageIdx)+"</"+idxPosMark+">"+ "\n"+\
-			"<"+expMark+">"+str(self._exposure)+"</"+expMark+">"+"\n"+ \
-			"<"+colorMark +" format=\"float\""+">"+ "\n" +\
-			"<"+rMark+">"+str(self._npColorRGB[0])+"</"+rMark+">"+"\n"+ \
-			"<"+gMark+">"+str(self._npColorRGB[1])+"</"+gMark+">"+"\n"+ \
-			"<"+bMark+">"+str(self._npColorRGB[2])+"</"+bMark+">"+"\n"+ \
-			"</"+colorMark+">"+"\n"+ \
-			"</"+lightMark+">"
-		return outString
-
 # ----------------------------------------------------------------------------------
 #  SCENE
 # ----------------------------------------------------------------------------------
@@ -206,7 +176,7 @@ class Scene:
 
         # render all lights
         for light in self._lights:
-            imgOut = imgOut+light.render()	
+            imgOut = imgOut+light.render()
 
         # applyPostProcess
         for pp in self._postProcesses:
@@ -217,110 +187,62 @@ class Scene:
             imgOut = np.clip(imgOut,0.0,1.0)
         return imgOut
 
-    def toXML(self):
-        # create XML string
-        # <LIGHTS>
-        lsMark = "LIGHTS"
-        outString = "<"+lsMark+">"+"\n"
-        for l in self._lights :
-            outString = outString+l.toXML()+"\n"
-        # add </LIGHTS>
-        outString = outString + "</" +lsMark +">"+ '\n'
-        return  outString
+    def fromJSON(self, jsonFile, scale =0.5):
+        self._lights.clear()
 
-    def fromXML(self, xmlFile, scale =0.5):
-        # parse XML file
-        xdoc = miniXml.parse(xmlFile)
+        with open(jsonFile, 'r', encoding='utf-8') as f:
+            data = json.load(f)
 
-        # recover <LIGHT> tag
-        xLights = xdoc.getElementsByTagName('LIGHT')
+        lights_data = data.get('lights', [])
 
         # dict {'filename':[light]} to avoid multiple rendered-image file loads
         filenameLight = {}
 
-        # for each light TAG
-        for xl in xLights:
-            # recover light name
-            lightName = xl.attributes['name'].value
+        for light_data in lights_data:
+            lightName = light_data.get('name', 'Light')
 
-            # input file : <INPUTFILE ext=".jpg" min="0" max="100"  digit="4" >./images/set02/arnold_pass</INPUTFILE>
-            input = xl.getElementsByTagName('INPUTFILE')[0]
-            ext = input.attributes['ext'].value
-            min = int(input.attributes['min'].value)
-            max = int(input.attributes['max'].value)
-            digit = int(input.attributes['digit'].value)
-            imagesFile = input.firstChild.data	
+            input_data = light_data.get('inputFile', {})
+            ext = input_data.get('ext', '.jpg')
+            max_value = int(input_data.get('max', 100))
+            digit = int(input_data.get('digit', 4))
+            imagesFile = input_data.get('path', '')
 
-            # index light position : <IDXPOS>36</IDXPOS>
-            idxPos = int(xl.getElementsByTagName('IDXPOS')[0].firstChild.data)
-            
-            #exposure : <EXP>0.0</EXP>
-            exp = float(xl.getElementsByTagName('EXP')[0].firstChild.data)	
+            idxPos = int(light_data.get('idxPos', 0))
+            exp = float(light_data.get('exp', 0.0))
 
-    		# color : <COLOR format="float"> <R>1.0</R> <G>1.0</G> <B>1.0</B> </COLOR>
-            color =  xl.getElementsByTagName('COLOR')[0]
-            rr =  float(color.getElementsByTagName('R')[0].firstChild.data)
-            gg =  float(color.getElementsByTagName('G')[0].firstChild.data)
-            bb =  float(color.getElementsByTagName('B')[0].firstChild.data)
+            color_data = light_data.get('color', {})
+            rr = float(color_data.get('r', 1.0))
+            gg = float(color_data.get('g', 1.0))
+            bb = float(color_data.get('b', 1.0))
 
-            # create light
             light = Light(name=lightName)
             light.setExposure(exp)
-            light.setColor(np.asarray([rr,gg,bb]))
+            light.setColor(np.asarray([rr, gg, bb]))
             light.setImageIdx(idxPos)
-            images = Images('',imagesFile,ext,max,digit,load=False)
+            images = Images('', imagesFile, ext, max_value, digit, load=False)
             light.setImagesArray(images)
 
-            # add current light to allLights
             self._lights.append(light)
 
-            # filenameLight
-            if imagesFile in filenameLight: filenameLight[imagesFile].append(light) # imagesFile already used
-            else: filenameLight.update({imagesFile:[light]})
-
-        # recover <POSTPROCESS> tag
-        print("<ColorStudio: DEBUG>")
-        xPosts = xdoc.getElementsByTagName('POSTPROCESS')
-
-        # explore postprocess (in order they will be applyed in the same order (!))
-        for xp in xPosts:
-            children = xp.childNodes # all children
-            for child in children:
-                childNodeIsElement = (child.nodeType  == miniXml.Node.ELEMENT_NODE)
-                if childNodeIsElement : 
-                    # child is ELEMENT
-                    if child.tagName == 'CHROMA':
-                        # <CHROMA type="AWB"|"SATURATION">
-                        # get type attribute value
-                        typeString = child.attributes['type'].value
-                        print('<CHROMA type="',typeString,'">')
-                        if typeString=='AWB':
-                            pass
-                        if typeString=='saturation':
-                            pass
-
-
+            if imagesFile in filenameLight:
+                filenameLight[imagesFile].append(light)
+            else:
+                filenameLight.update({imagesFile: [light]})
 
         # rendered-image files management
-        # just load once rendered-image files
         for k in filenameLight.keys():
-            # lights that uses filenameLight
             lights = filenameLight[k]
-            firstLight = lights[0] # at least one light uses this rendered-images file set
-            # load images
-            imgs = Images( 								    \
-                firstLight._ImagesArray._pathImage, 		\
-                firstLight._ImagesArray._baseImageName, 	\
-                firstLight._ImagesArray._extImageName,	    \
-                firstLight._ImagesArray._nbImage,			\
-                firstLight._ImagesArray._nbDigit,			\
+            firstLight = lights[0]
+            imgs = Images(
+                firstLight._ImagesArray._pathImage,
+                firstLight._ImagesArray._baseImageName,
+                firstLight._ImagesArray._extImageName,
+                firstLight._ImagesArray._nbImage,
+                firstLight._ImagesArray._nbDigit,
                 load=True, scale=scale)
-            
-            # light share rendered-image files
-            for li in lights: li.setImagesArray(imgs)
-        
 
-
+            for li in lights:
+                li.setImagesArray(imgs)
 
     def print(self):
         print(" -------- LIGHTS -------- ")

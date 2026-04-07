@@ -1,0 +1,60 @@
+{
+  "lights": [
+    {
+      "name": "Light0",
+      "inputFile": {
+        "path": "./images/museum2x2/light01_",
+        "ext": ".jpg",
+        "min": 0,
+        "max": 100,
+        "digit": 4
+      },
+      "idxPos": 25,
+      "exp": 0.0,
+      "color": {
+        "r": 1.0,
+        "g": 1.0,
+        "b": 1.0
+      }
+    }
+  ],
+  "postprocesses": [
+    {
+      "name": "saturation",
+      "chroma": {
+        "type": "SATURATION",
+        "color": {
+          "r": 1.0,
+          "g": 1.0,
+          "b": 1.0
+        }
+      }
+    },
+    {
+      "name": "white balance",
+      "chroma": {
+        "type": "AWB",
+        "color": {
+          "r": 1.0,
+          "g": 1.0,
+          "b": 1.0
+        }
+      }
+    },
+    {
+      "name": "auto exposure",
+      "luminance": {
+        "type": "AE",
+        "y": 0.5
+      }
+    },
+    {
+      "name": "gamma",
+      "luminance": {
+        "type": "GAMMA",
+        "gamma": 1.2
+      }
+    }
+  ],
+  "renderFile": "render-2019-6-7-22-47-1.jpg"
+}
