@@ -8,7 +8,6 @@ Bienvenue dans la documentation de **Color Studio**, le projet de gestion de sc√
 
 ![Logo](images/logo.png)
 
-
 ---
 
 ## Pr√©sentation
