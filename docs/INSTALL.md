@@ -1,15 +1,13 @@
----
-title: Installation
----
-
 # Installation de Color Studio
+[Accueil](index.md) 
 
 ## Prérequis
 
-- Python 3.8 (64 bits recommandé)
+- Python 3.12
+- PyQt6
 - pip à jour
 
 ## Installation des dépendances
 
 ```bash
-py -3.8 -m pip install -r requirements.txt
+python colorStudioApp.py
