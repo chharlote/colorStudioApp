@@ -319,8 +319,8 @@ class CSQLightControlLayout(QHBoxLayout):
         self._exposureValueLabel.setText(expoString)
         self.exposure_changed.emit(self._exposure)
 
-    def setColor(self): self.exposure_changed.emit(self._exposure)
-
+    def setColor(self): self.color_requested.emit()
+    
     def sliderValueChanged(self,value): self.position_changed.emit(value)
 # ----------------------------------------------------------------------------------		
 class CSQAEControlLayout(QHBoxLayout):

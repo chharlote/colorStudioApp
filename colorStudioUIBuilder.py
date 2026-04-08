@@ -141,6 +141,8 @@ class CSUIAllBuilder(CSUIBuilder):
             # lightController
             lightController = colorStudioController.CSLightController(lightsScene, light, [self._renderWidget,self._color3DWidget])
             lightController._colorWheelController = colorWheelController
+            
+            lightControl_layout._controller = lightController
             lightControl_layout.exposure_changed.connect(lightController.on_exposure_changed)
             lightControl_layout.color_requested.connect(lightController.on_color_requested)
             lightControl_layout.position_changed.connect(lightController.on_position_changed)
@@ -153,6 +155,7 @@ class CSUIAllBuilder(CSUIBuilder):
         AE_layout = colorStudioWidget.CSQAEControlLayout(None)
         self._controlWidget._layout.addLayout(AE_layout)
         ae_controller = colorStudioController.CSAEController(lightsScene,ae,[self._renderWidget,self._color3DWidget])
+        AE_layout._controller = ae_controller
         AE_layout.exposure_changed.connect(ae_controller.on_exposure_changed)
 
         sat = colorStudioModel.Saturation()
