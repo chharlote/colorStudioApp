@@ -43,10 +43,7 @@ class CSController:
         self._scene = scene
         # widget update after sceneRoot.render()
         self._widget = widget
-    # methods
-    # event method called by widget
-    def _event(self,widget,event):
-        pass
+        
 # ----------------------------------------------------------------------------------
 class CSLightController(CSController):
     def __init__(self, 
@@ -91,17 +88,11 @@ class CSColorWheelController(CSController):
     def __init__(self,root,light,widget,cwidget=None):
         super().__init__(root,light,widget,controlledWidget =cwidget)
 
-    def _event(self,widget,event):
-        eventType = event[0]
-        # 0 : change color
-
-        if eventType == 0 :
-            # change light color
+    def on_color_changed(self, color):
             if not self._scene == None:
-                self._scene.setColor(event[1])  #event[1] color in RGB
-                # render scene
+                self._scene.setColor(color) 
                 img = self._sceneRoot.render()
-                # send new image to widget(s)
+                
                 for w in self._widget:
                     w._update(img)
 # ----------------------------------------------------------------------------------
@@ -109,19 +100,15 @@ class CSSaturationController(CSController):
     def __init__(self,root,postprocess,widget,cwidget=None):
         super().__init__(root,postprocess,widget, controlledWidget =cwidget)
 
-    def _event(self,widget,event):
-        eventType = event[0]
-        # 0  : set linear saturation 
-        # 1  : set gamma saturation 
-
-        if eventType == 0 :
-            # set linear saturation
-            self._scene.setLinearSaturation(event[1])  #event[1] saturation value 
-        if eventType == 1 :
-            # set gamma saturation
-            self._scene.setGammaSaturation(event[1])  #event[1] saturation value        # render scene
+    def on_linear_saturation_changed(self, value):
+        self._scene.setLinearSaturation(value)
         img = self._sceneRoot.render()
-        # send new image to widget(s)
+        for w in self._widget:
+            w._update(img)
+
+    def on_gamma_saturation_changed(self, value):
+        self._scene.setGammaSaturation(value)
+        img = self._sceneRoot.render()
         for w in self._widget:
             w._update(img)
 

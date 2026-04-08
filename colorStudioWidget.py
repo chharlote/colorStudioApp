@@ -407,6 +407,7 @@ class CSQAEControlLayout(QHBoxLayout):
         self.exposure_changed.emit(exposure)
 # ----------------------------------------------------------------------------------		
 class CSDisplayWidget(QWidget):
+    
     def __init__(self,controller, title = None):
         super().__init__()
         self._controller = controller
@@ -432,6 +433,9 @@ class CSDisplayWidget(QWidget):
         self._label.setPixmap(pixmap)
 # ----------------------------------------------------------------------------------		
 class CSDisplayColorWheel(QWidget):
+    
+    color_changed = QtCore.pyqtSignal(object)
+    
     def __init__(self,controller, width=480):
         super().__init__()
         # controller 
@@ -485,7 +489,7 @@ class CSDisplayColorWheel(QWidget):
             rgb = rgb_hsv_array[0,0]
 
             # controller
-            self._controller._event(self,[0,rgb])
+            self.color_changed.emit(rgb)
 # ----------------------------------------------------------------------------------		
 class CSDisplayControls(QWidget):
     def __init__(self):
@@ -498,6 +502,9 @@ class CSDisplayControls(QWidget):
         self.setLayout(self._layout)
 # ----------------------------------------------------------------------------------		
 class CSQSaturationLayout(QVBoxLayout):
+    
+    linear_saturation_changed = QtCore.pyqtSignal(float)
+    gamma_saturation_changed = QtCore.pyqtSignal(float)
 
     def __init__(self,controller,range=100):
         """
@@ -537,10 +544,10 @@ class CSQSaturationLayout(QVBoxLayout):
     def sliderLinearSaturationValueChanged(self,value): 
         self._linearSaturation = (2*value/100.0 -1.0)*self._range
         self._linearSaturationValueLabel.setText("saturation: "+"{:+.0f}".format(self._linearSaturation))
-        self._controller._event(self,[0,self._linearSaturation])
+        self.linear_saturation_changed.emit(self._linearSaturation)
 
     def sliderGammaSaturationValueChanged(self,value): 
         self._gammaSaturation = (2*value/100.0 -1.0)*self._range
         self._gammaSaturationValueLabel.setText("gamma saturation: "+"{:+.0f}".format(self._gammaSaturation))
-        self._controller._event(self,[1,self._gammaSaturation])
+        self.gamma_saturation_changed.emit(self._gammaSaturation)
 # ----------------------------------------------------------------------------------

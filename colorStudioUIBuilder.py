@@ -118,6 +118,7 @@ class CSUIAllBuilder(CSUIBuilder):
         self._colorWheelWidget.setGeometry(x,y,w,h)
         colorWheelController = colorStudioController.CSColorWheelController(lightsScene,None,[self._renderWidget,self._color3DWidget],self._colorWheelWidget)
         self._colorWheelWidget._controller = colorWheelController
+        self._colorWheelWidget.color_changed.connect(colorWheelController.on_color_changed)
 
         # (4) control Widget
         self._controlWidget = colorStudioWidget.CSDisplayControls()
@@ -164,6 +165,9 @@ class CSUIAllBuilder(CSUIBuilder):
         self._controlWidget._layout.addLayout(sat_layout)
         sat_controller = colorStudioController.CSSaturationController(lightsScene,sat,[self._renderWidget,self._color3DWidget])
         sat_layout._controller = sat_controller
+        
+        sat_layout.linear_saturation_changed.connect(sat_controller.on_linear_saturation_changed)
+        sat_layout.gamma_saturation_changed.connect(sat_controller.on_gamma_saturation_changed)
        # end of hack
 
         # (xxx) show all window
