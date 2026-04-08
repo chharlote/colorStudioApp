@@ -49,67 +49,43 @@ class CSController:
         pass
 # ----------------------------------------------------------------------------------
 class CSLightController(CSController):
-    def __init__(self,root,light,widget,cwidget=None, cwController = None):
-        super().__init__(root,light,widget, controlledWidget =cwidget)
+    def __init__(self, 
+                 root: colorStudioModel.Scene, 
+                 light: colorStudioModel.Light, 
+                 widget: list, 
+                 cwidget=None, 
+                 cwController=None):
+        super().__init__(root, light, widget, controlledWidget=cwidget)
         self._colorWheelController = cwController
 
-    def _event(self,widget,event):
-        eventType = event[0]
-        # 0  : slider position
-        # -1 : decrease Expoosure
-        # +1 : increase exposure
-        # +2 : change light color
+    def on_position_changed(self, position_idx):
+        self._scene.setImageIdx(position_idx)
+        img = self._sceneRoot.render()
+        for w in self._widget:
+            w._update(img)
 
-        if eventType == 0 :
-            # change light position index
-            self._scene.setImageIdx(event[1])  #event[1] slider position 
-            # render scene
-            img = self._sceneRoot.render()
-            # send new image to widget(s)
-            for w in self._widget:
-                w._update(img)
+    def on_exposure_changed(self, exposure_value):
+        self._scene.setExposure(exposure_value)
+        img = self._sceneRoot.render()
+        for w in self._widget:
+            w._update(img)
 
-        if eventType == 2 :
-            # tell colorWheel controller that self._scene is active light
-            self._colorWheelController._controlledWidget.setWindowTitle("Color Wheel::"+self._scene._name)
-            self._colorWheelController._scene =  self._scene
-
-        if eventType == -1 or eventType == 1: 
-            # change light exposure
-            self._scene.setExposure(event[1]) #event[1] exposure value
-            # render scene
-            img = self._sceneRoot.render()
-            # send new image to widget(s)
-            for w in self._widget:
-                w._update(img)
+    def on_color_requested(self):
+        self._colorWheelController._controlledWidget.setWindowTitle("Color Wheel::"+self._scene._name)
+        self._colorWheelController._scene = self._scene
 # ----------------------------------------------------------------------------------
 class CSAEController(CSController):
     def __init__(self,root,postprocess,widget,cwidget=None):
         super().__init__(root,postprocess,widget, controlledWidget =cwidget)
 
-    def _event(self,widget,event):
-        eventType = event[0]
-        # 0  : on off
-        # -1 : decrease Expoosure
-        # +1 : increase exposure
+    def on_exposure_changed(self, exposure_value):
+        self._scene.setExposure(exposure_value)
+        img = self._sceneRoot.render()
+        for w in self._widget:
+            w._update(img)
+            print("CSAEController::exposure_changed", exposure_value)
 
-        if eventType == 0 :
-            # turn on off automatic exposure
-            self._scene.setOnOff(event[1])  #event[1] on/off value 
-            # render scene
-            img = self._sceneRoot.render()
-            # send new image to widget(s)
-            for w in self._widget:
-                w._update(img)
-
-        if eventType == -1 or eventType == 1: 
-            # change automtic exposure  value
-            self._scene.setExposure(event[1]) #event[1] exposure value
-            # render scene
-            img = self._sceneRoot.render()
-            # send new image to widget(s)
-            for w in self._widget:
-                w._update(img)
+            
 # ----------------------------------------------------------------------------------
 class CSColorWheelController(CSController):
     def __init__(self,root,light,widget,cwidget=None):

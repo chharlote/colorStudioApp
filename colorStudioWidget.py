@@ -29,6 +29,7 @@ import skimage
 from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QSlider
 from PyQt6.QtGui import QIcon, QPixmap, QImage, QSurfaceFormat
 from PyQt6 import QtCore
+from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtOpenGLWidgets import QOpenGLWidget
 
 import colorStudioModel
@@ -177,17 +178,17 @@ class MyWidgetGL(QModernGLWidget):
         self.scene.plot(self.VBOdata)
 
     def mousePressEvent(self, evt):
-        pan_tool.start_drag(evt.x() / 512, evt.y() / 512)
+        pan_tool.start_drag(evt.position().x() / 512, evt.position().y() / 512)
         self.scene.pan(pan_tool.value)
         self.update()
 
     def mouseMoveEvent(self, evt):
-        pan_tool.dragging(evt.x() / 512, evt.y() / 512)
+        pan_tool.dragging(evt.position().x() / 512, evt.position().y() / 512)
         self.scene.pan(pan_tool.value)
         self.update()
 
     def mouseReleaseEvent(self, evt):
-        pan_tool.stop_drag(evt.x() / 512, evt.y() / 512)
+        pan_tool.stop_drag(evt.position().x() / 512, evt.position().y() / 512)
         self.scene.pan(pan_tool.value)
         self.update()
 
@@ -250,6 +251,10 @@ class CSQLoadSaveLayout(QHBoxLayout):
 # ----------------------------------------------------------------------------------
 class CSQLightControlLayout(QHBoxLayout):
 
+    exposure_changed = pyqtSignal(float)
+    color_requested = pyqtSignal()
+    position_changed = pyqtSignal(int)
+    
     def __init__(self,controller,uiDEIMG=None,uiIEIMG=None,uiCCIMG=None,stepE=0.2,maxE=5,lightPosIdx=50):
         """
         widget that controls exposure, color and position of light
@@ -305,21 +310,23 @@ class CSQLightControlLayout(QHBoxLayout):
         if self._exposure > self._max: self._exposure = self._max
         expoString = "{:+.2f}".format(self._exposure)
         self._exposureValueLabel.setText(expoString)
-        self._controller._event(self,[1,self._exposure])
-
+        self.exposure_changed.emit(self._exposure)
+        
     def decExposure(self):
         self._exposure = self._exposure - self._step
         if self._exposure < -self._max: self._exposure = -self._max
         expoString = "{:+.2f}".format(self._exposure)
         self._exposureValueLabel.setText(expoString)
-        self._controller._event(self,[-1,self._exposure])
+        self.exposure_changed.emit(self._exposure)
 
-    def setColor(self): self._controller._event(self,[2,None])
+    def setColor(self): self.exposure_changed.emit(self._exposure)
 
-    def sliderValueChanged(self,value): self._controller._event(self,[0,value])
+    def sliderValueChanged(self,value): self.position_changed.emit(value)
 # ----------------------------------------------------------------------------------		
 class CSQAEControlLayout(QHBoxLayout):
 
+    exposure_changed = QtCore.pyqtSignal(float)
+    
     def __init__(self, controller, uiAEonIMG=None,uiAEoffIMG=None,stepE=0.2,maxE=5):
 
         super().__init__()
@@ -368,48 +375,36 @@ class CSQAEControlLayout(QHBoxLayout):
         expoString = "{:+.2f}".format(exposure)
         self._exposureValueLabel.setText(expoString)
 
-        # send event to controller
-        self._controller._event(self,[0,self._on_off])
 
     def incExposure(self):
         if self._on_off:
-            # autoExposure on
             self._exposureON = self._exposureON + self._step
             if self._exposureON > self._max: self._exposureON = self._max
             exposure = self._exposureON
-            expoString = "{:+.2f}".format(exposure)
-            self._exposureValueLabel.setText(expoString)
-            # send event to controller
-            self._controller._event(self,[1,exposure])
         else:
-			# autoExposure off
             self._exposureOFF = self._exposureOFF + self._step
             if self._exposureOFF > self._max: self._exposureOFF = self._max
             exposure = self._exposureOFF
-            expoString = "{:+.2f}".format(exposure)
-            self._exposureValueLabel.setText(expoString)
-            # send event to controller
-            self._controller._event(self,[1,exposure])
+            
+        expoString = "{:+.2f}".format(exposure)
+        self._exposureValueLabel.setText(expoString)
+        
+        self.exposure_changed.emit(exposure) 
 
     def decExposure(self):
         if self._on_off:
-            # autoExposure on
             self._exposureON = self._exposureON - self._step
             if self._exposureON < -self._max: self._exposureON = -self._max
             exposure = self._exposureON
-            expoString = "{:+.2f}".format(exposure)
-            self._exposureValueLabel.setText(expoString)
-            # send event to controller
-            self._controller._event(self,[-1,exposure])
         else:
-			# autoExposure off
             self._exposureOFF = self._exposureOFF - self._step
             if self._exposureOFF < - self._max: self._exposureOFF = - self._max
             exposure = self._exposureOFF
-            expoString = "{:+.2f}".format(exposure)
-            self._exposureValueLabel.setText(expoString)
-            # send event to controller
-            self._controller._event(self,[-1,exposure])
+            
+        expoString = "{:+.2f}".format(exposure)
+        self._exposureValueLabel.setText(expoString)
+        
+        self.exposure_changed.emit(exposure)
 # ----------------------------------------------------------------------------------		
 class CSDisplayWidget(QWidget):
     def __init__(self,controller, title = None):
@@ -470,7 +465,7 @@ class CSDisplayColorWheel(QWidget):
 
     def mouseMoveEvent(self, e):
         # mouse position
-        x,y = e.x(), e.y()
+        x, y = int(e.position().x()), int(e.position().y())
 
         # hsv color
         hsv_array = np.zeros([1,1,3])
