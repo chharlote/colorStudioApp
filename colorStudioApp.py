@@ -39,12 +39,12 @@ app = QApplication.instance()
 if not app:  app = QApplication(sys.argv)
 
 # select input file name
-defaultFilename = "./xml-2019-6-7-22-47-1.xml" 
+defaultFilename = "./fichier_json_test1.json" 
 inputFilename, _ = QFileDialog.getOpenFileName(
     None,                                   
     "Color Studio - Select light-setup file", 
     "",                                     
-    "XML files (*.xml);;All files (*.*)"   
+    "JSON files (*.json);;All files (*.*)"   
 )
 print("ColorStudio: inuput file>",inputFilename)
 
@@ -57,8 +57,8 @@ else:
 
 # scene object
 lightsScene = colorStudioModel.Scene()
-# load scene from xml
-lightsScene.fromXML(inputFilename,colorStudioUIBuilder.CSUIBuilder.template['scale'])
+# load scene from json
+lightsScene.fromJSON(inputFilename,colorStudioUIBuilder.CSUIBuilder.template['scale'])
 # print scene
 lightsScene.print()
 

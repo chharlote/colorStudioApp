@@ -1,0 +1,108 @@
+{
+  "lights": [
+    {
+      "name": "Light0",
+      "inputFile": {
+        "path": "./images/museum2x2/light01_",
+        "ext": ".jpg",
+        "min": 0,
+        "max": 100,
+        "digit": 4
+      },
+      "idxPos": 37,
+      "exp": 0.0,
+      "color": {
+        "r": 1.0,
+        "g": 0.5461730707073686,
+        "b": 0.0
+      }
+    },
+    {
+      "name": "Light1",
+      "inputFile": {
+        "path": "./images/museum2x2/light01_",
+        "ext": ".jpg",
+        "min": 0,
+        "max": 100,
+        "digit": 4
+      },
+      "idxPos": 78,
+      "exp": 0.0,
+      "color": {
+        "r": 0.0,
+        "g": 0.2723073820170625,
+        "b": 1.0
+      }
+    },
+    {
+      "name": "Light2",
+      "inputFile": {
+        "path": "./images/museum2x2/light01_",
+        "ext": ".jpg",
+        "min": 0,
+        "max": 100,
+        "digit": 4
+      },
+      "idxPos": 48,
+      "exp": -0.8,
+      "color": {
+        "r": 1.0,
+        "g": 1.0,
+        "b": 1.0
+      }
+    },
+    {
+      "name": "Light3",
+      "inputFile": {
+        "path": "./images/museum2x2/light01_",
+        "ext": ".jpg",
+        "min": 0,
+        "max": 100,
+        "digit": 4
+      },
+      "idxPos": 22,
+      "exp": 0.0,
+      "color": {
+        "r": 1.0,
+        "g": 0.5710937034418088,
+        "b": 0.0
+      }
+    },
+    {
+      "name": "Light4",
+      "inputFile": {
+        "path": "./images/museum2x2/light01_",
+        "ext": ".jpg",
+        "min": 0,
+        "max": 100,
+        "digit": 4
+      },
+      "idxPos": 77,
+      "exp": 0.0,
+      "color": {
+        "r": 0.0,
+        "g": 0.3047683663179215,
+        "b": 1.0
+      }
+    },
+    {
+      "name": "Light5",
+      "inputFile": {
+        "path": "./images/museum2x2/light01_",
+        "ext": ".jpg",
+        "min": 0,
+        "max": 100,
+        "digit": 4
+      },
+      "idxPos": 0,
+      "exp": 0.0,
+      "color": {
+        "r": 0.01,
+        "g": 0.01,
+        "b": 0.01
+      }
+    }
+  ],
+  "postprocesses": [],
+  "renderFile": "render-2019-6-6-15-28-37.jpg"
+}

@@ -19,7 +19,6 @@ Color Studio - Rémi Cozot 2019
 # ----------------------------------------------------------------------------------
 
 import sys
-import imageio
 import moderngl
 
 import numpy as np
@@ -27,7 +26,6 @@ import skimage
 
 from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QSlider
 from PyQt6.QtGui import QIcon, QPixmap, QImage
-from PyQt6 import QtCore, QtOpenGL 
 
 import colorStudioModel
 import colorStudioWidget
@@ -120,6 +118,7 @@ class CSUIAllBuilder(CSUIBuilder):
         self._colorWheelWidget.setGeometry(x,y,w,h)
         colorWheelController = colorStudioController.CSColorWheelController(lightsScene,None,[self._renderWidget,self._color3DWidget],self._colorWheelWidget)
         self._colorWheelWidget._controller = colorWheelController
+        self._colorWheelWidget.color_changed.connect(colorWheelController.on_color_changed)
 
         # (4) control Widget
         self._controlWidget = colorStudioWidget.CSDisplayControls()
@@ -143,7 +142,11 @@ class CSUIAllBuilder(CSUIBuilder):
             # lightController
             lightController = colorStudioController.CSLightController(lightsScene, light, [self._renderWidget,self._color3DWidget])
             lightController._colorWheelController = colorWheelController
+            
             lightControl_layout._controller = lightController
+            lightControl_layout.exposure_changed.connect(lightController.on_exposure_changed)
+            lightControl_layout.color_requested.connect(lightController.on_color_requested)
+            lightControl_layout.position_changed.connect(lightController.on_position_changed)
 
         # (7) post processing
         # hacking waiting to Post process in XML
@@ -154,6 +157,7 @@ class CSUIAllBuilder(CSUIBuilder):
         self._controlWidget._layout.addLayout(AE_layout)
         ae_controller = colorStudioController.CSAEController(lightsScene,ae,[self._renderWidget,self._color3DWidget])
         AE_layout._controller = ae_controller
+        AE_layout.exposure_changed.connect(ae_controller.on_exposure_changed)
 
         sat = colorStudioModel.Saturation()
         lightsScene.addPostProcess(sat)
@@ -161,6 +165,9 @@ class CSUIAllBuilder(CSUIBuilder):
         self._controlWidget._layout.addLayout(sat_layout)
         sat_controller = colorStudioController.CSSaturationController(lightsScene,sat,[self._renderWidget,self._color3DWidget])
         sat_layout._controller = sat_controller
+        
+        sat_layout.linear_saturation_changed.connect(sat_controller.on_linear_saturation_changed)
+        sat_layout.gamma_saturation_changed.connect(sat_controller.on_gamma_saturation_changed)
        # end of hack
 
         # (xxx) show all window
