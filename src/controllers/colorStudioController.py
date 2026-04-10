@@ -27,7 +27,7 @@ import skimage
 from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QSlider
 from PyQt6.QtGui import QIcon, QPixmap, QImage
 
-import colorStudioModel
+import models.colorStudioModel as colorStudioModel
 
 # ----------------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------

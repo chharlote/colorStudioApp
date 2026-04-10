@@ -1,0 +1,19 @@
+
+#render-*.jpg
+
+
+# data/outputs/
+# data/json/
+
+__pycache__/
+
+venv/
+env/
+.env
+.venv
+
+.vscode/
+
+.vs/
+
+
