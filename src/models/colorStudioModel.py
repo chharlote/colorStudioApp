@@ -10,7 +10,7 @@ Color Studio - Rémi Cozot 2019
 # import(s)
 # ----------------------------------------------------------------------------------
 
-from colorStudioUtils import loadImage, printProgressBar, image2Ymean
+from utils.colorStudioUtils import loadImage, printProgressBar, image2Ymean
 
 import math
 import numpy as np

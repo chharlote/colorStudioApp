@@ -3,7 +3,7 @@
     {
       "name": "Light0",
       "inputFile": {
-        "path": "./images/museum2x2/light01_",
+        "path": "./assets/images/museum2x2/light01_",
         "ext": ".jpg",
         "min": 0,
         "max": 100,
@@ -56,5 +56,5 @@
       }
     }
   ],
-  "renderFile": "render-2019-6-7-22-47-1.jpg"
+  "renderFile": "./outputs/render-2019-6-7-22-47-1.jpg"
 }

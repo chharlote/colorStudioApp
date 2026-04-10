@@ -32,9 +32,9 @@ from PyQt6 import QtCore
 from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtOpenGLWidgets import QOpenGLWidget
 
-import colorStudioModel
-import colorStudioUtils
-import colorStudioUIBuilder
+import models.colorStudioModel as colorStudioModel
+import utils.colorStudioUtils as colorStudioUtils
+import views.colorStudioUIBuilder as colorStudioUIBuilder
 
 # functions
 # ----------------------------------------------------------------------------------

@@ -3,7 +3,7 @@
     {
       "name": "Light0",
       "inputFile": {
-        "path": "./images/museum2x2/light01_",
+        "path": "./assets/images/museum2x2/light01_",
         "ext": ".jpg",
         "min": 0,
         "max": 100,
@@ -20,7 +20,7 @@
     {
       "name": "Light1",
       "inputFile": {
-        "path": "./images/museum2x2/light01_",
+        "path": "./assets/images/museum2x2/light01_",
         "ext": ".jpg",
         "min": 0,
         "max": 100,
@@ -37,7 +37,7 @@
     {
       "name": "Light2",
       "inputFile": {
-        "path": "./images/museum2x2/light01_",
+        "path": "./assets/images/museum2x2/light01_",
         "ext": ".jpg",
         "min": 0,
         "max": 100,
@@ -54,7 +54,7 @@
     {
       "name": "Light3",
       "inputFile": {
-        "path": "./images/museum2x2/light01_",
+        "path": "./assets/images/museum2x2/light01_",
         "ext": ".jpg",
         "min": 0,
         "max": 100,
@@ -71,7 +71,7 @@
     {
       "name": "Light4",
       "inputFile": {
-        "path": "./images/museum2x2/light01_",
+        "path": "./assets/images/museum2x2/light01_",
         "ext": ".jpg",
         "min": 0,
         "max": 100,
@@ -88,7 +88,7 @@
     {
       "name": "Light5",
       "inputFile": {
-        "path": "./images/museum2x2/light01_",
+        "path": "./assets/images/museum2x2/light01_",
         "ext": ".jpg",
         "min": 0,
         "max": 100,
@@ -104,5 +104,5 @@
     }
   ],
   "postprocesses": [],
-  "renderFile": "render-2019-6-7-22-38-31.jpg"
+  "renderFile": "./outputs/render-2019-6-7-22-38-31.jpg"
 }
