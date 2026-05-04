@@ -133,8 +133,8 @@ def colorWheel(halfSize):
 	hsv_array = np.zeros([nb,nb,3])
 	for i in range(nb):
 		for j in range(nb):
-			ii = (i-center)/(center-1)
-			jj = (j-center)/(center-1)
+			ii = (i-center)/center
+			jj = (j-center)/center
 			r = math.sqrt(ii*ii+jj*jj)
 
 			if (r<0.5): hsv_array[i,j,:] = [0.0,0.0,1.0]		
