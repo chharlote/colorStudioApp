@@ -300,11 +300,7 @@ class CSQLightControlLayout(QHBoxLayout):
 
         # slider
         self._sliderPosition.valueChanged.connect(self.sliderValueChanged) 
-        self._exposureValueLabel = QLabel("+0.00")
         
-        self._sliderPosition = QSlider(QtCore.Qt.Orientation.Horizontal) 
-        self._sliderPosition.setValue(lightPosIdx)
-
     def incExposure(self):
         self._exposure = self._exposure + self._step
         if self._exposure > self._max: self._exposure = self._max
