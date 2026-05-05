@@ -39,16 +39,20 @@ app = QApplication.instance()
 if not app:  app = QApplication(sys.argv)
 
 # select input file name
-defaultFilename = "./fichier_json_test1.json" 
-inputFilename, _ = QFileDialog.getOpenFileName(
-    None,                                   
-    "Color Studio - Select light-setup file", 
-    "",                                     
-    "JSON files (*.json);;All files (*.*)"   
-)
-print("ColorStudio: inuput file>",inputFilename)
+defaultFilename = "./fichier_json_test1.json"
+inputFilename = sys.argv[1] if len(sys.argv) > 1 else ""
 
-if not inputFilename: 
+if not inputFilename:
+    inputFilename, _ = QFileDialog.getOpenFileName(
+        None,
+        "Color Studio - Select light-setup file",
+        "",
+        "JSON files (*.json);;All files (*.*)"
+    )
+
+print("ColorStudio: inuput file>", inputFilename)
+
+if not inputFilename:
     inputFilename = defaultFilename
     print("ColorStudio: action annulée, utilisation du fichier par défaut >", inputFilename)
 else:
