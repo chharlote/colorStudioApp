@@ -363,13 +363,19 @@ class CSQAEControlLayout(QHBoxLayout):
         self._deButton.clicked.connect(self.decExposure)
 
     def switch_on_off(self):
-        self._on_off = not(self._on_off)
-        print("DEBUG::CSQAEControlLayout.switch_on_off::",self._on_off)
-        # update exposure value according on/off
-        if self._on_off : exposure = self._exposureON
-        else : exposure = self._exposureOFF
-        expoString = "{:+.2f}".format(exposure)
-        self._exposureValueLabel.setText(expoString)
+            self._on_off = not(self._on_off)
+            print("DEBUG::CSQAEControlLayout.switch_on_off::",self._on_off)
+            
+            if hasattr(self, '_controller') and self._controller:
+                self._controller._scene.setOnOff(self._on_off)
+
+            # update exposure value according on/off
+            if self._on_off : exposure = self._exposureON
+            else : exposure = self._exposureOFF
+            expoString = "{:+.2f}".format(exposure)
+            self._exposureValueLabel.setText(expoString)
+            
+            self.exposure_changed.emit(exposure)
 
 
     def incExposure(self):
