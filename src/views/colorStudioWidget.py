@@ -26,7 +26,7 @@ import math
 import numpy as np
 import skimage
 
-from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QSlider
+from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QSlider, QSizePolicy
 from PyQt6.QtGui import QIcon, QPixmap, QImage, QSurfaceFormat
 from PyQt6 import QtCore
 from PyQt6.QtCore import pyqtSignal
@@ -121,7 +121,6 @@ class HelloWorld2D:
             self.vao.render(moderngl.LINE_STRIP, vertices=len(data) // 24)
         if type == 'points':
             self.ctx.point_size = 3.0
-            #self.vao.render(moderngl.POINTS, vertices=len(data) // 24)
             self.vao.render(moderngl.POINTS, vertices=len(data) // 24)
 # ----------------------------------------------------------------------------------
 class PanTool:
@@ -167,10 +166,12 @@ class MyWidgetGL(QModernGLWidget):
 
 
     def init(self):
-        #self.resize(480, 480)
-        #self.setGeometry(1440,30,480,480)
-        self.ctx.viewport = (0, 0, 480, 480)
+        self.ctx.viewport = (0, 0, self.width(), self.height())
         self.scene = HelloWorld2D(self.ctx)
+
+    def resizeGL(self, width, height):
+        if hasattr(self, 'ctx'):
+            self.ctx.viewport = (0, 0, width, height)
 
     def render(self):
         self.screen.use()
@@ -195,6 +196,20 @@ class MyWidgetGL(QModernGLWidget):
     def _update(self,img):
         self.VBOdata = colorStudioUtils.img2chromaVertices(img, False)
         self.update()
+
+    def loadImage(self, path):
+        image = QImage(path)
+        if image.isNull():
+            return False
+        pixmap = QPixmap.fromImage(image)
+        self._label.setPixmap(pixmap)
+        return True
+
+    def saveImage(self, path):
+        pixmap = self._label.pixmap()
+        if pixmap is None:
+            return False
+        return pixmap.save(path)
 # ----------------------------------------------------------------------------------
 class CSQIMGButton(QPushButton):
 
@@ -323,7 +338,7 @@ class CSQLightControlLayout(QHBoxLayout):
     
     def sliderValueChanged(self,value): self.position_changed.emit(value)
 # ----------------------------------------------------------------------------------		
-class CSQAEControlLayout(QHBoxLayout):
+class CSQAEControlLayout(QWidget):
 
     exposure_changed = QtCore.pyqtSignal(float)
     
@@ -346,20 +361,35 @@ class CSQAEControlLayout(QHBoxLayout):
         if uiAEonIMG == None : uiAEonIMG = colorStudioUIBuilder.CSUIBuilder.uiAEonIMG 
         if uiAEoffIMG == None : uiAEoffIMG = colorStudioUIBuilder.CSUIBuilder.uiAEoffIMG
 
-        # create automatic exposure (switch) + control button
-        self._aeButton =  CSQIMGSwitchButton(uiAEonIMG,uiAEoffIMG,(50,50),name="switch AE")
+        # create layout and widgets
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(5, 5, 5, 5)
+        layout.setSpacing(10)
 
-        self._ieButton = QPushButton("EV (+)")
-        self._deButton = QPushButton("EV (-)")
-
-        # exposure value label
+        self._aeButton = CSQIMGSwitchButton(uiAEonIMG, uiAEoffIMG, (40,40), name="switch AE")
+        self._ieButton = QPushButton("EV +")
+        self._deButton = QPushButton("EV -")
         self._exposureValueLabel = QLabel("+0.00")
+        self._exposureValueLabel.setFixedWidth(50)
+        self._exposureValueLabel.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
 
-        # add button to layout
-        self.addWidget(self._aeButton)
-        self.addWidget(self._deButton)
-        self.addWidget(self._exposureValueLabel)
-        self.addWidget(self._ieButton)
+        self._aeLabel = QLabel("Auto Exposure")
+        self._aeLabel.setFixedWidth(100)
+
+        self._aeButton.setToolTip("Enable/disable automatic exposure")
+        self._ieButton.setToolTip("Increase exposure")
+        self._deButton.setToolTip("Decrease exposure")
+
+        layout.addWidget(self._aeLabel)
+        layout.addWidget(self._aeButton)
+        layout.addWidget(self._deButton)
+        layout.addWidget(self._ieButton)
+        layout.addWidget(self._exposureValueLabel)
+
+        self.setLayout(layout)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        self.setMinimumHeight(60)
+        self.setStyleSheet("QWidget { background: rgba(255,255,255,0.9); border: 1px solid #aaa; border-radius: 4px; }")
 
         # set onClick callback
         self._aeButton.clicked.connect(self.switch_on_off)
@@ -368,42 +398,31 @@ class CSQAEControlLayout(QHBoxLayout):
 
     def switch_on_off(self):
         self._on_off = not(self._on_off)
-        print("DEBUG::CSQAEControlLayout.switch_on_off::",self._on_off)
-        # update exposure value according on/off
         if self._on_off : exposure = self._exposureON
         else : exposure = self._exposureOFF
         expoString = "{:+.2f}".format(exposure)
         self._exposureValueLabel.setText(expoString)
 
-
     def incExposure(self):
         if self._on_off:
-            self._exposureON = self._exposureON + self._step
-            if self._exposureON > self._max: self._exposureON = self._max
+            self._exposureON = min(self._exposureON + self._step, self._max)
             exposure = self._exposureON
         else:
-            self._exposureOFF = self._exposureOFF + self._step
-            if self._exposureOFF > self._max: self._exposureOFF = self._max
+            self._exposureOFF = min(self._exposureOFF + self._step, self._max)
             exposure = self._exposureOFF
-            
         expoString = "{:+.2f}".format(exposure)
         self._exposureValueLabel.setText(expoString)
-        
-        self.exposure_changed.emit(exposure) 
+        self.exposure_changed.emit(exposure)
 
     def decExposure(self):
         if self._on_off:
-            self._exposureON = self._exposureON - self._step
-            if self._exposureON < -self._max: self._exposureON = -self._max
+            self._exposureON = max(self._exposureON - self._step, -self._max)
             exposure = self._exposureON
         else:
-            self._exposureOFF = self._exposureOFF - self._step
-            if self._exposureOFF < - self._max: self._exposureOFF = - self._max
+            self._exposureOFF = max(self._exposureOFF - self._step, -self._max)
             exposure = self._exposureOFF
-            
         expoString = "{:+.2f}".format(exposure)
         self._exposureValueLabel.setText(expoString)
-        
         self.exposure_changed.emit(exposure)
 # ----------------------------------------------------------------------------------		
 class CSDisplayWidget(QWidget):
@@ -413,7 +432,15 @@ class CSDisplayWidget(QWidget):
         self._controller = controller
         if not title:
             self.setWindowTitle("Color Studio - RC 2019")
-        self._label =  QLabel(self)
+        self._label = QLabel(self)
+        self._label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self._label.setScaledContents(True)
+
+        # layout so the label always fills the render widget
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(self._label)
+        self.setLayout(layout)
 
         # setFirstPixmap
         w,h = colorStudioUIBuilder.CSUIBuilder.template['uiRenderWidget_size']
@@ -442,12 +469,12 @@ class CSDisplayColorWheel(QWidget):
         self._controller = controller
 
         # size
-        self._width = 480
-        self._height = self._width
+        self._width = width
+        self._height = width
 
         # title and window size
         self.setWindowTitle("Color Wheel:: __ no active light __")
-        # self.setGeometry(1440,540,self._width,self._height)
+        self.setFixedSize(self._width, self._height)
 
         # image (color wheel)
         colorWheelImg = (colorStudioUtils.colorWheel(self._width//2)*255).astype(np.uint8)
@@ -457,10 +484,16 @@ class CSDisplayColorWheel(QWidget):
 
         # store pixmap in object
         self._pixmap = QPixmap.fromImage(qImg)
-        self._label =  QLabel(self)
+        self._label = QLabel(self)
+        self._label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self._label.setPixmap(self._pixmap)
+        self._label.setScaledContents(True)
 
-        self._label.setPixmap(self._pixmap)
+        # layout so the label fills the widget
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0,0,0,0)
+        layout.addWidget(self._label)
+        self.setLayout(layout)
 
         # mouse
         self.setMouseTracking(True)  
