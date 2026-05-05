@@ -24,8 +24,9 @@ import moderngl
 import numpy as np
 import skimage
 
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QSlider, QFileDialog
+from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QSlider, QFileDialog, QSplitter, QToolButton
 from PyQt6.QtGui import QIcon, QPixmap, QImage, QAction
+from PyQt6 import QtCore
 
 import models.colorStudioModel as colorStudioModel
 import views.colorStudioWidget as colorStudioWidget
@@ -97,6 +98,7 @@ class CSUIAllBuilder(CSUIBuilder):
     def __init__(self,lightsScene):
         # (0) load qIcon images and get screen resolution
         CSUIBuilder.uiLoadIcon()
+        self._sceneRoot = lightsScene
 
         # Create main window
         self._mainWindow = QMainWindow()
@@ -104,54 +106,96 @@ class CSUIAllBuilder(CSUIBuilder):
 
         central = QWidget()
         self._mainLayout = QHBoxLayout(central)
-        self._mainLayout.setSpacing(20)
+        self._mainLayout.setSpacing(0)
 
-        # Left layout
-        self._leftLayout = QVBoxLayout()
-        self._leftLayout.setSpacing(20)
-        # Right layout
-        self._rightLayout = QVBoxLayout()
-        self._rightLayout.setSpacing(20)
+        # Left-side menu for light controls
+        self._leftMenuWidget = QWidget()
+        self._leftMenuLayout = QVBoxLayout(self._leftMenuWidget)
+        self._leftMenuLayout.setSpacing(10)
+        self._leftMenuWidget.setFixedWidth(CSUIBuilder.template['uiControlWidget_size'][0] + 40)
+        self._leftMenuWidget.setVisible(True)
+
+        self._toggleLeftMenuButton = QToolButton()
+        self._toggleLeftMenuButton.setArrowType(QtCore.Qt.ArrowType.LeftArrow)
+        self._toggleLeftMenuButton.setFixedSize(20, 50)
+        self._toggleLeftMenuButton.clicked.connect(self._toggleLeftMenu)
+
+        self._leftPanelContainer = QWidget()
+        self._leftPanelLayout = QHBoxLayout(self._leftPanelContainer)
+        self._leftPanelLayout.setSpacing(0)
+        self._leftPanelLayout.setContentsMargins(0, 0, 0, 0)
+        self._leftPanelLayout.addWidget(self._leftMenuWidget)
+        self._leftPanelLayout.addWidget(self._toggleLeftMenuButton)
+
+        # Main content widget in the center
+        self._mainContentWidget = QWidget()
+        self._mainContentLayout = QVBoxLayout(self._mainContentWidget)
+        self._mainContentLayout.setSpacing(20)
+
+        # Toggle button for right-side menu
+        self._toggleRightMenuButton = QToolButton()
+        self._toggleRightMenuButton.setArrowType(QtCore.Qt.ArrowType.RightArrow)
+        self._toggleRightMenuButton.setFixedSize(20, 50)
+        self._toggleRightMenuButton.clicked.connect(self._toggleRightMenu)
+
+        # Right-side menu for 3D and color wheel
+        self._rightMenuWidget = QWidget()
+        self._rightMenuLayout = QVBoxLayout(self._rightMenuWidget)
+        self._rightMenuLayout.setSpacing(10)
+        self._rightMenuWidget.setFixedWidth(CSUIBuilder.template['uiColorWheelWidget_size'][0] + 40)
+        self._rightMenuWidget.setVisible(False)
+
+        self._rightPanelContainer = QWidget()
+        self._rightPanelLayout = QHBoxLayout(self._rightPanelContainer)
+        self._rightPanelLayout.setSpacing(0)
+        self._rightPanelLayout.setContentsMargins(0, 0, 0, 0)
+        self._rightPanelLayout.addWidget(self._toggleRightMenuButton)
+        self._rightPanelLayout.addWidget(self._rightMenuWidget)
+
+        self._mainLayout.addWidget(self._leftPanelContainer)
+        self._mainLayout.addWidget(self._mainContentWidget)
+        self._mainLayout.addWidget(self._rightPanelContainer)
 
         # (1) render Widget
         self._renderWidget = colorStudioWidget.CSDisplayWidget(None, "Color Studio")
         w,h = CSUIBuilder.template['uiRenderWidget_size']
         self._renderWidget.setFixedSize(w,h)
-        self._leftLayout.addWidget(self._renderWidget)
+        self._mainContentLayout.addWidget(self._renderWidget)
 
-        # (2) color3D widget
-        self._color3DWidget = colorStudioWidget.MyWidgetGL(skimage.transform.rescale(lightsScene.render(), 0.1, anti_aliasing=True, channel_axis =2 ),True)
-        w, h = CSUIBuilder.template['uiColor3DWidget_size'] 
-        self._color3DWidget.setFixedSize(w,h)
-        self._rightLayout.addWidget(self._color3DWidget)
+        # (2) color3D widget section
+        self._color3DWidget = colorStudioWidget.MyWidgetGL(skimage.transform.rescale(lightsScene.render(), 0.1, anti_aliasing=True, channel_axis=2), True)
+        w, h = CSUIBuilder.template['uiColor3DWidget_size']
+        self._color3DWidget.setFixedSize(w, h)
+        color3DSection = colorStudioWidget.CSQCollapsibleSection("3D View", expanded=True)
+        color3DSection.addWidget(self._color3DWidget)
+        self._rightMenuLayout.addWidget(color3DSection)
 
-        # (3) colorWheel Widget
-        w,h = CSUIBuilder.template['uiColorWheelWidget_size']
-        self._colorWheelWidget = colorStudioWidget.CSDisplayColorWheel(None,w)
-        self._colorWheelWidget.setFixedSize(w,h)
-        self._rightLayout.addWidget(self._colorWheelWidget)
-        colorWheelController = colorStudioController.CSColorWheelController(lightsScene,None,[self._renderWidget,self._color3DWidget],self._colorWheelWidget)
+        # (3) colorWheel Widget section
+        w, h = CSUIBuilder.template['uiColorWheelWidget_size']
+        self._colorWheelWidget = colorStudioWidget.CSDisplayColorWheel(None, w)
+        self._colorWheelWidget.setFixedSize(w, h)
+        colorWheelSection = colorStudioWidget.CSQCollapsibleSection("Color Wheel", expanded=True)
+        colorWheelSection.addWidget(self._colorWheelWidget)
+        self._rightMenuLayout.addWidget(colorWheelSection)
+
+        colorWheelController = colorStudioController.CSColorWheelController(lightsScene, None, [self._renderWidget, self._color3DWidget], self._colorWheelWidget)
         self._colorWheelWidget._controller = colorWheelController
         self._colorWheelWidget.color_changed.connect(colorWheelController.on_color_changed)
 
-        # (4) control Widget
+        # Light controls sit in the left-side menu
         self._controlWidget = colorStudioWidget.CSDisplayControls()
         self._controlWidget.setFixedWidth(CSUIBuilder.template['uiControlWidget_size'][0])
-        self._leftLayout.addWidget(self._controlWidget)
-
-        # (5) load/save layout to control widget
-        loadSaveLayout = colorStudioWidget.CSQLoadSaveLayout(CSUIBuilder.uiLoadIMG,CSUIBuilder.uiSaveIMG)
-        self._controlWidget._layout.addWidget(QLabel("Load / Save"))
-        self._controlWidget._layout.addLayout(loadSaveLayout)
+        self._leftMenuLayout.addWidget(self._controlWidget)
 
         # (6) light Control Layout per light
         for light in lightsScene._lights:
-            self._controlWidget._layout.addWidget(QLabel("Light: "+light._name+" - control [ - | EV | + ] [light color] [light position]"))
+            section = colorStudioWidget.CSQCollapsibleSection(f"Light: {light._name}", expanded=False)
             # set value according to light
             lightControl_layout = colorStudioWidget.CSQLightControlLayout(None, lightPosIdx=light._imageIdx)
             expoString = "{:+.2f}".format(light._exposure)
             lightControl_layout._exposureValueLabel.setText(expoString)
-            self._controlWidget._layout.addLayout(lightControl_layout)
+            section.addLayout(lightControl_layout)
+            self._controlWidget._layout.addWidget(section)
             # lightController
             lightController = colorStudioController.CSLightController(lightsScene, light, [self._renderWidget,self._color3DWidget])
             lightController._colorWheelController = colorWheelController
@@ -184,10 +228,6 @@ class CSUIAllBuilder(CSUIBuilder):
         # end of hack
 
         # Add layouts to main
-        self._mainLayout.addLayout(self._leftLayout)
-        self._mainLayout.addLayout(self._rightLayout)
-
-        central.setLayout(self._mainLayout)
         self._mainWindow.setCentralWidget(central)
 
         # Menu bar
@@ -206,10 +246,14 @@ class CSUIAllBuilder(CSUIBuilder):
         exitAction.triggered.connect(self._mainWindow.close)
 
         # Resize main window to fit the generated layout
-        main_width = CSUIBuilder.template['uiControlWidget_size'][0] + CSUIBuilder.template['uiRenderWidget_size'][0] + CSUIBuilder.template['uiColorWheelWidget_size'][0] + 100
-        main_height = max(CSUIBuilder.template['uiRenderWidget_size'][1], CSUIBuilder.template['uiColor3DWidget_size'][1] * 2 + 20) + 100
-        self._mainWindow.setMinimumSize(main_width, main_height)
-        self._mainWindow.resize(main_width, main_height)
+        render_width = CSUIBuilder.template['uiRenderWidget_size'][0]
+        render_height = CSUIBuilder.template['uiRenderWidget_size'][1]
+        color3d_height = CSUIBuilder.template['uiColor3DWidget_size'][1]
+        wheel_height = CSUIBuilder.template['uiColorWheelWidget_size'][1]
+        total_height = max(render_height, color3d_height + wheel_height + 40)
+        main_width = render_width + 50  # +50 for toggle button
+        self._mainWindow.setMinimumSize(main_width, total_height + 100)
+        self._mainWindow.resize(main_width, total_height + 100)
 
         # (xxx) show main window
         self._mainWindow.show()
@@ -218,13 +262,33 @@ class CSUIAllBuilder(CSUIBuilder):
         self._renderWidget._update(lightsScene.render())
 
     def loadImage(self):
-        """Load an image file and display it in the render widget"""
+        """Load an image file and use it as the current scene render image."""
         path, _ = QFileDialog.getOpenFileName(self._mainWindow, "Load Image", "", "Images (*.png *.jpg *.jpeg *.bmp);;All files (*.*)")
-        if path:
-            success = self._renderWidget.loadImage(path)
-            if not success:
-                # Could show a message box here, but for now just print
-                print("Failed to load image")
+        if not path:
+            return
+
+        try:
+            imgDouble = colorStudioUtils.loadImage(path, CSUIBuilder.template.get('scale', 1.0))
+        except Exception as e:
+            print(f"Failed to load image: {e}")
+            return
+
+        # Replace all light input images with the newly loaded image.
+        for light in self._sceneRoot._lights:
+            if light._ImagesArray is not None:
+                light._ImagesArray._images = [imgDouble]
+                light._ImagesArray._nbImage = 1
+                light._ImagesArray._maxIdx = 1
+            light._imageIdx = 0
+            light._maxIdx = 1
+            light._needUpdate = True
+            light._firstUpdate = True
+
+        # Update the displayed render and 3D widget
+        img = self._sceneRoot.render()
+        self._renderWidget._update(img)
+        self._color3DWidget._update(img)
+        print(f"Loaded image into scene from {path}")
 
     def saveImage(self):
         """Save the current render image to file"""
@@ -233,6 +297,24 @@ class CSUIAllBuilder(CSUIBuilder):
             success = self._renderWidget.saveImage(path)
             if not success:
                 print("Failed to save image")
+
+    def _toggleLeftMenu(self):
+        """Toggle the visibility of the left-side control menu."""
+        if self._leftMenuWidget.isVisible():
+            self._leftMenuWidget.setVisible(False)
+            self._toggleLeftMenuButton.setArrowType(QtCore.Qt.ArrowType.RightArrow)
+        else:
+            self._leftMenuWidget.setVisible(True)
+            self._toggleLeftMenuButton.setArrowType(QtCore.Qt.ArrowType.LeftArrow)
+
+    def _toggleRightMenu(self):
+        """Toggle the visibility of the right-side 3D/color wheel menu."""
+        if self._rightMenuWidget.isVisible():
+            self._rightMenuWidget.setVisible(False)
+            self._toggleRightMenuButton.setArrowType(QtCore.Qt.ArrowType.RightArrow)
+        else:
+            self._rightMenuWidget.setVisible(True)
+            self._toggleRightMenuButton.setArrowType(QtCore.Qt.ArrowType.LeftArrow)
 
 
 

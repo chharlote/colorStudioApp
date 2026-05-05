@@ -26,7 +26,7 @@ import math
 import numpy as np
 import skimage
 
-from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QSlider, QSizePolicy
+from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QSlider, QToolButton, QSizePolicy
 from PyQt6.QtGui import QIcon, QPixmap, QImage, QSurfaceFormat
 from PyQt6 import QtCore
 from PyQt6.QtCore import pyqtSignal
@@ -337,7 +337,44 @@ class CSQLightControlLayout(QHBoxLayout):
     def setColor(self): self.color_requested.emit()
     
     def sliderValueChanged(self,value): self.position_changed.emit(value)
-# ----------------------------------------------------------------------------------		
+# ----------------------------------------------------------------------------------
+class CSQCollapsibleSection(QWidget):
+
+    def __init__(self, title, expanded=False, parent=None):
+        super().__init__(parent)
+
+        self._toggleButton = QToolButton()
+        self._toggleButton.setText(title)
+        self._toggleButton.setCheckable(True)
+        self._toggleButton.setChecked(expanded)
+        self._toggleButton.setToolButtonStyle(QtCore.Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+        self._toggleButton.setArrowType(QtCore.Qt.ArrowType.DownArrow if expanded else QtCore.Qt.ArrowType.RightArrow)
+        self._toggleButton.clicked.connect(self._on_toggle)
+
+        self._content = QWidget()
+        self._contentLayout = QVBoxLayout(self._content)
+        self._contentLayout.setContentsMargins(15, 0, 0, 0)
+        self._contentLayout.setSpacing(6)
+        self._content.setVisible(expanded)
+
+        self._layout = QVBoxLayout(self)
+        self._layout.setContentsMargins(0, 0, 0, 0)
+        self._layout.setSpacing(2)
+        self._layout.addWidget(self._toggleButton)
+        self._layout.addWidget(self._content)
+
+    def _on_toggle(self):
+        expanded = self._toggleButton.isChecked()
+        self._toggleButton.setArrowType(QtCore.Qt.ArrowType.DownArrow if expanded else QtCore.Qt.ArrowType.RightArrow)
+        self._content.setVisible(expanded)
+
+    def addWidget(self, widget):
+        self._contentLayout.addWidget(widget)
+
+    def addLayout(self, layout):
+        self._contentLayout.addLayout(layout)
+
+# ----------------------------------------------------------------------------------
 class CSQAEControlLayout(QWidget):
 
     exposure_changed = QtCore.pyqtSignal(float)
