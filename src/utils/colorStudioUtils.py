@@ -72,6 +72,9 @@ def loadImage(filename, scale=0.5):
     # Apply scaling
     if scale != 1.0:
         imgDouble = skimage.transform.rescale(imgDouble, scale, anti_aliasing=True, channel_axis=2)
+        
+    if imgDouble.shape[-1] == 4:
+        imgDouble = imgDouble[..., :3]  # Remove alpha channel if present
     
     return imgDouble
 # ----------------------------------------------------------------------------------	
