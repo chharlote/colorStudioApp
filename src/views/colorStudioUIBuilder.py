@@ -181,7 +181,7 @@ class CSUIAllBuilder(CSUIBuilder):
         
         sat_layout.linear_saturation_changed.connect(sat_controller.on_linear_saturation_changed)
         sat_layout.gamma_saturation_changed.connect(sat_controller.on_gamma_saturation_changed)
-       # end of hack
+        # end of hack
 
         # Add layouts to main
         self._mainLayout.addLayout(self._leftLayout)
@@ -218,14 +218,21 @@ class CSUIAllBuilder(CSUIBuilder):
         self._renderWidget._update(lightsScene.render())
 
     def loadImage(self):
+        """Load an image file and display it in the render widget"""
         path, _ = QFileDialog.getOpenFileName(self._mainWindow, "Load Image", "", "Images (*.png *.jpg *.jpeg *.bmp);;All files (*.*)")
         if path:
-            self._renderWidget.loadImage(path)
+            success = self._renderWidget.loadImage(path)
+            if not success:
+                # Could show a message box here, but for now just print
+                print("Failed to load image")
 
     def saveImage(self):
-        path, _ = QFileDialog.getSaveFileName(self._mainWindow, "Save Image", "", "PNG Image (*.png);;JPEG Image (*.jpg *.jpeg)")
+        """Save the current render image to file"""
+        path, _ = QFileDialog.getSaveFileName(self._mainWindow, "Save Image", "", "PNG Image (*.png);;JPEG Image (*.jpg *.jpeg);;BMP Image (*.bmp)")
         if path:
-            self._renderWidget.saveImage(path)
+            success = self._renderWidget.saveImage(path)
+            if not success:
+                print("Failed to save image")
 
 
 

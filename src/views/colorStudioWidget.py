@@ -458,9 +458,42 @@ class CSDisplayWidget(QWidget):
         qImg = QImage(img, width, height, bytesPerLine, QImage.Format.Format_RGB888)
         pixmap = QPixmap.fromImage(qImg)
         self._label.setPixmap(pixmap)
-# ----------------------------------------------------------------------------------		
+
+    def loadImage(self, path):
+        """Load an image from file and display it in the render widget"""
+        try:
+            image = QImage(path)
+            if image.isNull():
+                print(f"Error: Cannot load image from {path}")
+                return False
+            pixmap = QPixmap.fromImage(image)
+            self._label.setPixmap(pixmap)
+            print(f"Image loaded from {path}")
+            return True
+        except Exception as e:
+            print(f"Error loading image: {e}")
+            return False
+
+    def saveImage(self, path):
+        """Save the current displayed image to file"""
+        try:
+            pixmap = self._label.pixmap()
+            if pixmap is None or pixmap.isNull():
+                print("Error: No image to save")
+                return False
+            success = pixmap.save(path)
+            if success:
+                print(f"Image saved to {path}")
+            else:
+                print(f"Error: Failed to save image to {path}")
+            return success
+        except Exception as e:
+            print(f"Error saving image: {e}")
+            return False
+
+# ----------------------------------------------------------------------------------
 class CSDisplayColorWheel(QWidget):
-    
+
     color_changed = QtCore.pyqtSignal(object)
     
     def __init__(self,controller, width=480):
@@ -469,8 +502,11 @@ class CSDisplayColorWheel(QWidget):
         self._controller = controller
 
         # size
-        self._width = width
-        self._height = width
+        if isinstance(width, (tuple, list)) and len(width) == 2:
+            self._width, self._height = int(width[0]), int(width[1])
+        else:
+            self._width = int(width)
+            self._height = int(width)
 
         # title and window size
         self.setWindowTitle("Color Wheel:: __ no active light __")
