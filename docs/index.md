@@ -1,80 +1,147 @@
 # Color Studio
-###### Réalisé par Charlotte Germe, Luc Telliez et Chloé Faillie
 
-[Installation](INSTALL.md)<br><br>
+**Color Studio** est un logiciel Python pour composer des images de synthèse à partir de contributions lumineuses individuelles.
 
-
-Bienvenue dans la documentation de **Color Studio**, le projet de gestion de scènes lumineuses en Python.
-
-![Logo](images/logo.png)
-
----
-## Informations générale
-
-ColorStudio est un logiciel de compositing d’images de synthèse permettant de combiner plusieurs rendus afin de produire une image finale cohérente.
-
-Contrairement aux approches classiques, ColorStudio propose un compositing basé sur les sources lumineuses, offrant un contrôle fin de l’éclairage sans recalcul complet de la scène.
+Cette documentation couvre l’installation, l’utilisation et l’architecture de l’application.
 
 ---
 
-## Principe de fonctionnement
+## Objectif du projet
 
-Le logiciel fonctionne à partir de séries d’images générées pour chaque lampe :
+Color Studio permet de :
+- charger et visualiser une scène à partir d’une image de rendu,
+- contrôler plusieurs sources lumineuses (lampes) en temps réel,
+- ajuster l’exposition, les couleurs et la position de chaque lumière,
+- obtenir un rendu final interactif sans recalculer l’intégralité de la scène.
 
-- Chaque lampe possède une trajectoire<br>
-- Plusieurs images sont générées pour différentes positions<br>
-- Chaque image correspond à une contribution lumineuse unique
+Le principe clé est de combiner les contributions lumineuses plutôt que de recalculer la géométrie complète de la scène.
 
-L’image finale est obtenue par addition des contributions lumineuses
+---
 
-Formule utilisée :
-``` I_final = somme des images de chaque lampe à une position donnée ```
+## Installation
 
-## Interface utilisateur
+### Prérequis
 
-L'interface est composé de :
- - l'image
- - la gestion des lampes
- - compositing interactif
- - les réglages globaux
- - la visualisation avancée
+- Python 3.10+ (3.12 recommandé)
+- Pip installé
 
-## Fonctionnalités principales
-🔹 Gestion des lampes
-Ajouter une lampe
-Supprimer une lampe
-Modifier ses propriétés :
-Position
-Couleur
-Intensité
+### Dépendances principales
 
-🔹 Compositing interactif
-Mise à jour en temps réel de l’image
-Combinaison dynamique des contributions lumineuses
+- PyQt6
+- moderngl
+- numpy
+- scikit-image
+- imageio
 
-🔹 Réglages globaux
-Exposition automatique
-Correction colorimétrique
+### Installation des dépendances
 
-🔹 Visualisation avancée
-Analyse des couleurs en 3D
+Depuis le répertoire racine du projet :
+
+```powershell
+py -3 -m pip install PyQt6 moderngl numpy scikit-image imageio
+```
 
 
-## Utilisation du logiciel
+---
 
+## Lancement de l’application
 
-## Environnement technique
+Depuis la racine du projet :
 
-Version modernisée attendue :
+```powershell
 
-Python 3.12+ <br>
-PyQt6<br>
+```
 
-Bibliothèques :<br>
+Le programme ouvre la fenêtre principale en taille maximale selon la résolution de l’écran.
+
+---
+
+## Utilisation
+
+### Interface principale
+
+L’interface est organisée en trois zones :
+
+1. **Vue de rendu principale**
+   - affiche le résultat composite de toutes les lampes.
+2. **Panneau de contrôle à gauche**
+   - regroupe les contrôles de chaque lampe,
+   - permet de modifier l’exposition, la couleur et la position des lampes.
+3. **Panneau droit optionnel**
+   - affiche la visualisation 3D des couleurs,
+   - affiche la roue chromatique interactive.
+
+### Contrôles de lampe
+
+Pour chaque lampe, le panneau de contrôle contient :
+- un bouton pour diminuer l’exposition,
+- un bouton pour augmenter l’exposition,
+- un bouton pour changer la couleur,
+- un curseur de position.
+
+Chaque contrôleur indique désormais clairement le nom de la lampe qu’il modifie.
+
+### Options globales
+
+- **Chargement d’image** : menu Fichier > Load Image...
+- **Sauvegarde d’image** : menu Fichier > Save Image...
+- **Quitter** : menu Fichier > Exit
+
+---
+
+## Fonctionnalités
+
+- **Chargement et affichage d’images**
+- **Redimensionnement automatique de l’image** lorsque la fenêtre est redimensionnée
+- **Ouverture en plein écran** ou mode maximisé selon la résolution du moniteur
+- **Contrôle individuel des lampes**
+- **Affichage d’une roue chromatique** pour choisir facilement une couleur
+- **Visualisation 3D des couleurs** via ModernGL
+- **Exposition automatique** et réglages de saturation
+
+---
 
 ## Architecture du projet
 
-## Qualité logicielle
+Le code est organisé principalement dans le dossier `src/` :
 
-## Support et maintenance
+- `src/colorStudioApp.py` : point d’entrée de l’application,
+-  `views/` : interface utilisateur et widgets Qt,
+  - `colorStudioUIBuilder.py` : construction de l’interface principale,
+  - `colorStudioWidget.py` : widgets d’affichage et contrôles personnalisés,
+- `controllers/` : logique de contrôle des lampes et interactions utilisateur,
+- `models/` : modèles des scènes lumineuses et post-traitement,
+- `utils/` : utilitaires pour le traitement d’images et les conversions couleur.
 
+---
+
+## Bonnes pratiques
+
+- Charger une image de rendu claire pour améliorer la lisibilité des contrôles d’exposition.
+- Utiliser les sections pliables (`collapsible sections`) pour masquer/afficher les contrôles des lampes.
+- Vérifier les couleurs de la roue chromatique avant de les appliquer pour garder un rendu cohérent.
+
+---
+
+## Maintenance
+
+- Pour ajouter une nouvelle fonctionnalité, privilégier la séparation logique entre vues, contrôleurs et modèles.
+- Documenter chaque nouvelle classe et chaque nouveau widget dans `docs/index.md`.
+- Tester les modifications d’interface en ouvrant l’application et en redimensionnant la fenêtre.
+
+---
+
+## Support
+
+Signalez les bugs en décrivant :
+- le système d’exploitation utilisé,
+- la version de Python,
+- la séquence d’actions ayant provoqué le problème.
+
+---
+
+## Notes
+
+- Ce projet a été adapté pour un environnement moderne Python/PyQt,
+- certaines dépendances attendent un environnement graphique compatible.
+- Le chemin d’exécution principal est `src\colorStudioApp.py`.
