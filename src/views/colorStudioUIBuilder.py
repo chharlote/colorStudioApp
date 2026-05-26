@@ -96,8 +96,21 @@ class CSUIBuilder:
 # ----------------------------------------------------------------------------------
 class CSUIAllBuilder(CSUIBuilder):
     def __init__(self,lightsScene):
-        # (0) load qIcon images and get screen resolution
+        # (0) load qIcon images and initialize template from screen resolution
         CSUIBuilder.uiLoadIcon()
+        # determine screen size (use existing QApplication if present)
+        app = QApplication.instance()
+        if app is None:
+            app = QApplication(sys.argv)
+        screen = app.primaryScreen()
+        if screen is not None:
+            geom = screen.availableGeometry()
+            widthScreen = geom.width()
+            heightScreen = geom.height()
+        else:
+            # fallback to a reasonable default
+            widthScreen, heightScreen = 1280, 800
+        CSUIBuilder.setTemplate(widthScreen, heightScreen)
         self._sceneRoot = lightsScene
 
         # Create main window
@@ -191,7 +204,7 @@ class CSUIAllBuilder(CSUIBuilder):
         for light in lightsScene._lights:
             section = colorStudioWidget.CSQCollapsibleSection(f"Light: {light._name}", expanded=False)
             # set value according to light
-            lightControl_layout = colorStudioWidget.CSQLightControlLayout(None, lightPosIdx=light._imageIdx)
+            lightControl_layout = colorStudioWidget.CSQLightControlLayout(None, lightPosIdx=light._imageIdx, light_name=light._name)
             expoString = "{:+.2f}".format(light._exposure)
             lightControl_layout._exposureValueLabel.setText(expoString)
             section.addLayout(lightControl_layout)
@@ -255,8 +268,8 @@ class CSUIAllBuilder(CSUIBuilder):
         self._mainWindow.setMinimumSize(main_width, total_height + 100)
         self._mainWindow.resize(main_width, total_height + 100)
 
-        # (xxx) show main window
-        self._mainWindow.show()
+        # (xxx) show main window maximized to fit the screen
+        self._mainWindow.showMaximized()
 
         # (end) init render
         self._renderWidget._update(lightsScene.render())

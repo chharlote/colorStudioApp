@@ -270,7 +270,7 @@ class CSQLightControlLayout(QHBoxLayout):
     color_requested = pyqtSignal()
     position_changed = pyqtSignal(int)
     
-    def __init__(self,controller,uiDEIMG=None,uiIEIMG=None,uiCCIMG=None,stepE=0.2,maxE=5,lightPosIdx=50):
+    def __init__(self,controller,uiDEIMG=None,uiIEIMG=None,uiCCIMG=None,stepE=0.2,maxE=5,lightPosIdx=50, light_name=None):
         """
         widget that controls exposure, color and position of light
         @params:
@@ -297,6 +297,11 @@ class CSQLightControlLayout(QHBoxLayout):
         self._exposureValueLabel = QLabel("+0.00")
         self._sliderPosition = QSlider(QtCore.Qt.Orientation.Horizontal)
         self._sliderPosition.setValue(lightPosIdx)
+
+        # visible name label so user sees which light is controlled
+        name = light_name if light_name is not None else "Light"
+        self._nameLabel = QLabel(name)
+        self._nameLabel.setFixedWidth(120)
         # control of Exposure
         self._step 	= stepE
         self._max 	= maxE
@@ -313,12 +318,21 @@ class CSQLightControlLayout(QHBoxLayout):
         self._deButton.clicked.connect(self.decExposure)
         self._ccButton.clicked.connect(self.setColor)
 
+        # set tooltips / accessible names so user knows which light they're modifying
+        name = light_name if light_name is not None else "Light"
+        try:
+            self._deButton.setToolTip(f"{name}: Decrease exposure")
+            self._ieButton.setToolTip(f"{name}: Increase exposure")
+            self._ccButton.setToolTip(f"{name}: Change color")
+            self._deButton.setAccessibleName(f"{name} decrease exposure")
+            self._ieButton.setAccessibleName(f"{name} increase exposure")
+            self._ccButton.setAccessibleName(f"{name} change color")
+            self._exposureValueLabel.setToolTip(f"{name}: exposure value")
+        except Exception:
+            pass
+
         # slider
-        self._sliderPosition.valueChanged.connect(self.sliderValueChanged) 
-        self._exposureValueLabel = QLabel("+0.00")
-        
-        self._sliderPosition = QSlider(QtCore.Qt.Orientation.Horizontal) 
-        self._sliderPosition.setValue(lightPosIdx)
+        self._sliderPosition.valueChanged.connect(self.sliderValueChanged)
 
     def incExposure(self):
         self._exposure = self._exposure + self._step
@@ -468,10 +482,11 @@ class CSDisplayWidget(QWidget):
         super().__init__()
         self._controller = controller
         if not title:
-            self.setWindowTitle("Color Studio - RC 2019")
+            self.setWindowTitle("Color Studio - CG LT CF 2026")
         self._label = QLabel(self)
         self._label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self._label.setScaledContents(True)
+        # We handle scaling manually to preserve aspect ratio and avoid cropping
+        self._label.setScaledContents(False)
 
         # layout so the label always fills the render widget
         layout = QVBoxLayout(self)
@@ -479,22 +494,52 @@ class CSDisplayWidget(QWidget):
         layout.addWidget(self._label)
         self.setLayout(layout)
 
-        # setFirstPixmap
+        # setFirstPixmap (white placeholder) and keep original pixmap for scaling
         w,h = colorStudioUIBuilder.CSUIBuilder.template['uiRenderWidget_size']
         img = (np.ones((h,w,3))*255).astype(np.uint8)
         height, width, channel = img.shape
         bytesPerLine = channel * width
-        qImg = QImage(img, width, height, bytesPerLine, QImage.Format.Format_RGB888)       
+        qImg = QImage(img, width, height, bytesPerLine, QImage.Format.Format_RGB888)
         pixmap = QPixmap.fromImage(qImg)
-        self._label.setPixmap(pixmap)
+        self._pixmap_original = pixmap
+        # scale to current widget size (may be different from template)
+        target_w = max(1, self.width())
+        target_h = max(1, self.height())
+        scaled = self._pixmap_original.scaled(target_w, target_h, QtCore.Qt.AspectRatioMode.KeepAspectRatio, QtCore.Qt.TransformationMode.SmoothTransformation)
+        self._label.setPixmap(scaled)
 
     def _update(self,imgDouble):
-        img = (imgDouble*255).astype(np.uint8)
+        # accept either float image in [0,1] or uint8 image
+        try:
+            if hasattr(imgDouble, 'dtype') and imgDouble.dtype == np.uint8:
+                img = imgDouble
+            else:
+                img = (imgDouble * 255).astype(np.uint8)
+        except Exception:
+            return
+
         height, width, channel = img.shape
         bytesPerLine = channel * width
         qImg = QImage(img, width, height, bytesPerLine, QImage.Format.Format_RGB888)
         pixmap = QPixmap.fromImage(qImg)
-        self._label.setPixmap(pixmap)
+        self._pixmap_original = pixmap
+        # scale to widget size for smooth display and keep full image visible
+        target_w = max(1, self.width())
+        target_h = max(1, self.height())
+        scaled = self._pixmap_original.scaled(target_w, target_h, QtCore.Qt.AspectRatioMode.KeepAspectRatio, QtCore.Qt.TransformationMode.SmoothTransformation)
+        self._label.setPixmap(scaled)
+
+    def resizeEvent(self, event):
+        # when widget resizes, rescale stored original pixmap to fit
+        try:
+            if hasattr(self, '_pixmap_original') and not self._pixmap_original.isNull():
+                target_w = max(1, self.width())
+                target_h = max(1, self.height())
+                scaled = self._pixmap_original.scaled(target_w, target_h, QtCore.Qt.AspectRatioMode.KeepAspectRatio, QtCore.Qt.TransformationMode.SmoothTransformation)
+                self._label.setPixmap(scaled)
+        except Exception:
+            pass
+        super().resizeEvent(event)
 
     def loadImage(self, path):
         """Load an image from file and display it in the render widget"""
@@ -504,7 +549,11 @@ class CSDisplayWidget(QWidget):
                 print(f"Error: Cannot load image from {path}")
                 return False
             pixmap = QPixmap.fromImage(image)
-            self._label.setPixmap(pixmap)
+            self._pixmap_original = pixmap
+            target_w = max(1, self.width())
+            target_h = max(1, self.height())
+            scaled = self._pixmap_original.scaled(target_w, target_h, QtCore.Qt.AspectRatioMode.KeepAspectRatio, QtCore.Qt.TransformationMode.SmoothTransformation)
+            self._label.setPixmap(scaled)
             print(f"Image loaded from {path}")
             return True
         except Exception as e:
