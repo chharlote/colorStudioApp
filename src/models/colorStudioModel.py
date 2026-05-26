@@ -26,9 +26,9 @@ import json
 # ----------------------------------------------------------------------------------
 class Images:
     """
-    set of images 
+    set of images (supports both LDR and HDR formats)
     """
-    def __init__(self,pathImage,baseImageName,extImageName,nbImage,nbDigit,load=True, scale = 0.5):
+    def __init__(self,pathImage,baseImageName,extImageName,nbImage,nbDigit,load=True, scale=0.5, isHDR=False):
 
         # path to images data
         self._pathImage = pathImage
@@ -36,20 +36,24 @@ class Images:
         self._extImageName = extImageName
         self._nbImage = nbImage
         self._nbDigit = nbDigit
+        # flag to indicate if images are HDR
+        self._isHDR = isHDR
         # list of images
         self._images = []
 
         if load:  self.loadImages(scale)
 
-    def loadImages(self, scale =0.5):
+    def loadImages(self, scale=0.5):
+        progress_total = max(1, self._nbImage - 1)
+
         for i in range(self._nbImage):
-            printProgressBar (i, self._nbImage-1, prefix = '', suffix = '', decimals = 1, length = 50, fill = '█')
+            printProgressBar(i, progress_total, prefix = '', suffix = '', decimals = 1, length = 50, fill = '█')
 
             # create formated filename
             iStr = str(i).zfill(self._nbDigit)
-            name =  self._pathImage+self._baseImageName+iStr+self._extImageName
+            name = self._pathImage+self._baseImageName+iStr+self._extImageName
 
-            # load image
+            # load image (loadImage handles both LDR and HDR)
             img = loadImage(name, scale)
 
             self._images.append(img)
@@ -57,6 +61,8 @@ class Images:
     def clear(self): self._images.clear()
 
     def len(self): return self._nbImage
+    
+    def isHDR(self): return self._isHDR
 # ----------------------------------------------------------------------------------
 #  LIGHT
 # ----------------------------------------------------------------------------------
@@ -176,7 +182,18 @@ class Scene:
 
         # render all lights
         for light in self._lights:
-            imgOut = imgOut+light.render()
+            lightImg = light.render()
+
+            # Keep mixed-size image sets renderable by resizing to the scene canvas.
+            if lightImg.shape != imgOut.shape:
+                lightImg = skimage.transform.resize(
+                    lightImg,
+                    imgOut.shape,
+                    preserve_range=True,
+                    anti_aliasing=True,
+                )
+
+            imgOut = imgOut + lightImg
 
         # applyPostProcess
         for pp in self._postProcesses:
@@ -206,6 +223,8 @@ class Scene:
             max_value = int(input_data.get('max', 100))
             digit = int(input_data.get('digit', 4))
             imagesFile = input_data.get('path', '')
+            # New: support for HDR images (default is False for backward compatibility)
+            isHDR = input_data.get('isHDR', False)
 
             idxPos = int(light_data.get('idxPos', 0))
             exp = float(light_data.get('exp', 0.0))
@@ -219,7 +238,7 @@ class Scene:
             light.setExposure(exp)
             light.setColor(np.asarray([rr, gg, bb]))
             light.setImageIdx(idxPos)
-            images = Images('', imagesFile, ext, max_value, digit, load=False)
+            images = Images('', imagesFile, ext, max_value, digit, load=False, isHDR=isHDR)
             light.setImagesArray(images)
 
             self._lights.append(light)
@@ -239,7 +258,7 @@ class Scene:
                 firstLight._ImagesArray._extImageName,
                 firstLight._ImagesArray._nbImage,
                 firstLight._ImagesArray._nbDigit,
-                load=True, scale=scale)
+                load=True, scale=scale, isHDR=firstLight._ImagesArray.isHDR())
 
             for li in lights:
                 li.setImagesArray(imgs)

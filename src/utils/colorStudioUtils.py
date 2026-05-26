@@ -28,6 +28,9 @@ def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, 
         length      - Optional  : character length of bar (Int)
         fill        - Optional  : bar fill character (Str)
     """
+    if total <= 0:
+        total = 1
+
     percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
     filledLength = int(length * iteration // total)
     bar = fill * filledLength + '-' * (length - filledLength)
@@ -38,15 +41,41 @@ def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, 
 # ----------------------------------------------------------------------------------	
 def loadImage(filename, scale=0.5):
     """
-    load image from image filename and convert to double in [0,1]
+    load image from image filename and convert to double
     @params:
         filename   - Required  : image filename (Str)
         scale      - Optional  : scaling factor [=0.5] (Float)
+    Returns:
+        imgDouble  : image in double format; [0,1] for LDR (JPG), linear for HDR (EXR)
     """
-    img = skimage.io.imread(filename)
-    imgDouble = 1.0*img/255.0
-    if scale != 1.0 :
-        imgDouble = skimage.transform.rescale(imgDouble, scale, anti_aliasing=True, channel_axis= 2 )
+    import os
+    
+    # Detect image format
+    _, file_ext = os.path.splitext(filename)
+    file_ext = file_ext.lower()
+    
+    # Load HDR (EXR) or LDR (JPG/PNG) images
+    if file_ext in ['.exr']:
+        # Load HDR image directly (keeps linear values)
+        try:
+            import imageio
+            img = imageio.imread(filename)
+        except ImportError:
+            # Fallback to scikit-image if imageio not available
+            img = skimage.io.imread(filename)
+        imgDouble = np.float64(img)  # Ensure float type
+    else:
+        # Load LDR image (8-bit) and convert to [0,1]
+        img = skimage.io.imread(filename)
+        imgDouble = 1.0*img/255.0
+    
+    # Apply scaling
+    if scale != 1.0:
+        imgDouble = skimage.transform.rescale(imgDouble, scale, anti_aliasing=True, channel_axis=2)
+        
+    if imgDouble.shape[-1] == 4:
+        imgDouble = imgDouble[..., :3]  # Remove alpha channel if present
+    
     return imgDouble
 # ----------------------------------------------------------------------------------	
 def image2Ymean(imgDouble):
