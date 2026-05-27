@@ -106,6 +106,10 @@ class Light:
 		self._needUpdate = True
 	
 	def setImageIdx(self,idx):
+		# Ensure index is within valid range
+		if self._ImagesArray and self._ImagesArray._images:
+			max_idx = len(self._ImagesArray._images) - 1
+			idx = min(max(idx, 0), max_idx)
 		self._imageIdx = idx
 		self._needUpdate = True
 	

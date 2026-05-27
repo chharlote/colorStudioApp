@@ -26,7 +26,7 @@ import math
 import numpy as np
 import skimage
 
-from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QSlider, QToolButton, QSizePolicy
+from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QSlider, QToolButton, QSizePolicy, QScrollArea
 from PyQt6.QtGui import QIcon, QPixmap, QImage, QSurfaceFormat
 from PyQt6 import QtCore
 from PyQt6.QtCore import pyqtSignal
@@ -264,13 +264,13 @@ class CSQLoadSaveLayout(QHBoxLayout):
 		self.addWidget(self.loadButton)
 		self.addWidget(self.saveButton)
 # ----------------------------------------------------------------------------------
-class CSQLightControlLayout(QHBoxLayout):
+class CSQLightControlLayout(QVBoxLayout):
 
     exposure_changed = pyqtSignal(float)
     color_requested = pyqtSignal()
     position_changed = pyqtSignal(int)
     
-    def __init__(self,controller,uiDEIMG=None,uiIEIMG=None,uiCCIMG=None,stepE=0.2,maxE=5,lightPosIdx=50, light_name=None):
+    def __init__(self,controller,uiDEIMG=None,uiIEIMG=None,uiCCIMG=None,stepE=0.2,maxE=5,lightPosIdx=50, light_name=None, light_color=None):
         """
         widget that controls exposure, color and position of light
         @params:
@@ -280,6 +280,7 @@ class CSQLightControlLayout(QHBoxLayout):
             uiCCIMG     - Optional  : icon for color control     (Qicon)
             stepE       - Optional  : exposure step [=0.2]       (Float)
             maxE        - Optional  : max exposure  [=5.O]       (Float)
+            light_color - Optional  : RGB color tuple [0,1]      (tuple)
        """
         super().__init__()
         # controller 
@@ -290,49 +291,119 @@ class CSQLightControlLayout(QHBoxLayout):
         if uiIEIMG == None : uiIEIMG = colorStudioUIBuilder.CSUIBuilder.uiIEIMG
         if uiCCIMG == None : uiCCIMG = colorStudioUIBuilder.CSUIBuilder.uiCCIMG
 
-        # create button
-        self._deButton = CSQIMGButton(uiDEIMG,(50,50),name="decrease exposure button")
-        self._ieButton = CSQIMGButton(uiIEIMG,(50,50),name="increase exposure button")
-        self._ccButton = CSQIMGButton(uiCCIMG,(50,50),name="light color  button")
-        self._exposureValueLabel = QLabel("+0.00")
-        self._sliderPosition = QSlider(QtCore.Qt.Orientation.Horizontal)
-        self._sliderPosition.setValue(lightPosIdx)
-
         # visible name label so user sees which light is controlled
         name = light_name if light_name is not None else "Light"
-        self._nameLabel = QLabel(name)
-        self._nameLabel.setFixedWidth(120)
+        self._nameLabel = QLabel(f"<b>{name}</b>")
+        self._nameLabel.setFixedHeight(25)
+        
         # control of Exposure
         self._step 	= stepE
         self._max 	= maxE
         self._exposure = 0.0
-        # add button to layout
-        self.addWidget(self._deButton)
-        self.addWidget(self._exposureValueLabel)
-        self.addWidget(self._ieButton)
-        self.addWidget(self._ccButton)
-        self.addWidget(self._sliderPosition)
+        self._light_color = light_color if light_color is not None else (1.0, 1.0, 1.0)
+        
+        # Row 1: Light name
+        self.addWidget(self._nameLabel)
+        
+        # Row 2: Exposure controls (-, value, +)
+        exposureLayout = QHBoxLayout()
+        
+        exposureLabel = QLabel("Exposure")
+        exposureLabel.setFixedWidth(60)
+        
+        self._deButton = QPushButton("-")
+        self._deButton.setFixedWidth(40)
+        self._deButton.setToolTip(f"{name}: Decrease exposure")
+        self._deButton.setAccessibleName(f"{name} decrease exposure")
+        
+        self._exposureValueLabel = QLabel("+0.00")
+        self._exposureValueLabel.setFixedWidth(60)
+        self._exposureValueLabel.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self._exposureValueLabel.setToolTip(f"{name}: exposure value")
+        
+        self._ieButton = QPushButton("+")
+        self._ieButton.setFixedWidth(40)
+        self._ieButton.setToolTip(f"{name}: Increase exposure")
+        self._ieButton.setAccessibleName(f"{name} increase exposure")
+        
+        exposureLayout.addWidget(exposureLabel)
+        exposureLayout.addWidget(self._deButton)
+        exposureLayout.addWidget(self._exposureValueLabel)
+        exposureLayout.addWidget(self._ieButton)
+        exposureLayout.addStretch()
+        self.addLayout(exposureLayout)
+        
+        # Row 3: Color control
+        colorLayout = QHBoxLayout()
+        self._ccButton = QPushButton()
+        self._ccButton.setFixedSize(50, 50)
+        self._ccButton.setToolTip(f"{name}: Change color")
+        self._ccButton.setAccessibleName(f"{name} change color")
+        # Set initial color on button
+        self._updateColorButton(self._light_color)
+        
+        colorLabel = QLabel("Color")
+        colorLabel.setFixedWidth(50)
+        colorLayout.addWidget(colorLabel)
+        colorLayout.addWidget(self._ccButton)
+        colorLayout.addStretch()
+        self.addLayout(colorLayout)
+        
+        # Row 4: Position slider with label
+        positionLayout = QHBoxLayout()
+        positionLabel = QLabel("Position")
+        positionLabel.setFixedWidth(60)
+        self._sliderPosition = QSlider(QtCore.Qt.Orientation.Horizontal)
+        self._sliderPosition.setValue(lightPosIdx)
+        self._sliderPosition.setToolTip(f"{name}: Light position")
+        positionLayout.addWidget(positionLabel)
+        positionLayout.addWidget(self._sliderPosition)
+        self.addLayout(positionLayout)
 
         # set onClick callback
         self._ieButton.clicked.connect(self.incExposure)
         self._deButton.clicked.connect(self.decExposure)
         self._ccButton.clicked.connect(self.setColor)
 
-        # set tooltips / accessible names so user knows which light they're modifying
-        name = light_name if light_name is not None else "Light"
+        # slider
+        self._sliderPosition.valueChanged.connect(self.sliderValueChanged)
+        
+        # Add stretch at end to prevent excessive vertical spacing
+        self.addStretch()
+
+    def _updateColorButton(self, rgb):
+        """Update the color button background with the light color"""
         try:
-            self._deButton.setToolTip(f"{name}: Decrease exposure")
-            self._ieButton.setToolTip(f"{name}: Increase exposure")
-            self._ccButton.setToolTip(f"{name}: Change color")
-            self._deButton.setAccessibleName(f"{name} decrease exposure")
-            self._ieButton.setAccessibleName(f"{name} increase exposure")
-            self._ccButton.setAccessibleName(f"{name} change color")
-            self._exposureValueLabel.setToolTip(f"{name}: exposure value")
+            # Ensure rgb values are in [0,1] range
+            r = max(0, min(1, rgb[0]))
+            g = max(0, min(1, rgb[1]))
+            b = max(0, min(1, rgb[2]))
+            
+            # Convert to 0-255 range for QColor
+            r_int = int(r * 255)
+            g_int = int(g * 255)
+            b_int = int(b * 255)
+            
+            # Set button background color
+            self._ccButton.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: rgb({r_int}, {g_int}, {b_int});
+                    border: 2px solid #333;
+                    border-radius: 4px;
+                    color: white;
+                    font-weight: bold;
+                }}
+                QPushButton:hover {{
+                    border: 2px solid #666;
+                }}
+            """)
         except Exception:
             pass
 
-        # slider
-        self._sliderPosition.valueChanged.connect(self.sliderValueChanged)
+    def setLightColor(self, rgb):
+        """Update the light color and display it on the button"""
+        self._light_color = rgb
+        self._updateColorButton(rgb)
 
     def incExposure(self):
         self._exposure = self._exposure + self._step
@@ -477,39 +548,34 @@ class CSQAEControlLayout(QWidget):
         self.exposure_changed.emit(exposure)
 # ----------------------------------------------------------------------------------		
 class CSDisplayWidget(QWidget):
-    
-    def __init__(self,controller, title = None):
+
+    def __init__(self, controller, title=None):
         super().__init__()
+
         self._controller = controller
-        if not title:
-            self.setWindowTitle("Color Studio - CG LT CF 2026")
+
         self._label = QLabel(self)
         self._label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        # We handle scaling manually to preserve aspect ratio and avoid cropping
-        self._label.setScaledContents(False)
 
-        # layout so the label always fills the render widget
+        # IMPORTANT: casse boucle layout
+        self._label.setScaledContents(False)
+        self._label.setSizePolicy(
+            QSizePolicy.Policy.Ignored,
+            QSizePolicy.Policy.Ignored
+        )
+
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
         layout.addWidget(self._label)
         self.setLayout(layout)
 
-        # setFirstPixmap (white placeholder) and keep original pixmap for scaling
-        w,h = colorStudioUIBuilder.CSUIBuilder.template['uiRenderWidget_size']
-        img = (np.ones((h,w,3))*255).astype(np.uint8)
-        height, width, channel = img.shape
-        bytesPerLine = channel * width
-        qImg = QImage(img, width, height, bytesPerLine, QImage.Format.Format_RGB888)
-        pixmap = QPixmap.fromImage(qImg)
-        self._pixmap_original = pixmap
-        # scale to current widget size (may be different from template)
-        target_w = max(1, self.width())
-        target_h = max(1, self.height())
-        scaled = self._pixmap_original.scaled(target_w, target_h, QtCore.Qt.AspectRatioMode.KeepAspectRatio, QtCore.Qt.TransformationMode.SmoothTransformation)
-        self._label.setPixmap(scaled)
+        self._pixmap_original = None
 
-    def _update(self,imgDouble):
-        # accept either float image in [0,1] or uint8 image
+    # ----------------------------------------------------
+
+    def _update(self, imgDouble):
+
         try:
             if hasattr(imgDouble, 'dtype') and imgDouble.dtype == np.uint8:
                 img = imgDouble
@@ -518,27 +584,38 @@ class CSDisplayWidget(QWidget):
         except Exception:
             return
 
-        height, width, channel = img.shape
-        bytesPerLine = channel * width
-        qImg = QImage(img, width, height, bytesPerLine, QImage.Format.Format_RGB888)
-        pixmap = QPixmap.fromImage(qImg)
-        self._pixmap_original = pixmap
-        # scale to widget size for smooth display and keep full image visible
-        target_w = max(1, self.width())
-        target_h = max(1, self.height())
-        scaled = self._pixmap_original.scaled(target_w, target_h, QtCore.Qt.AspectRatioMode.KeepAspectRatio, QtCore.Qt.TransformationMode.SmoothTransformation)
-        self._label.setPixmap(scaled)
+        h, w, c = img.shape
+        qimg = QImage(img.data, w, h, c * w, QImage.Format.Format_RGB888)
+
+        self._pixmap_original = QPixmap.fromImage(qimg)
+
+        # Scale the displayed pixmap to the current widget size so color updates
+        # do not force the widget to grow to the raw image resolution.
+        target_size = self.size()
+        if target_size.width() > 0 and target_size.height() > 0:
+            scaled = self._pixmap_original.scaled(
+                target_size,
+                QtCore.Qt.AspectRatioMode.KeepAspectRatio,
+                QtCore.Qt.TransformationMode.SmoothTransformation
+            )
+            self._label.setPixmap(scaled)
+        else:
+            self._label.setPixmap(self._pixmap_original)
+
+    # ----------------------------------------------------
 
     def resizeEvent(self, event):
-        # when widget resizes, rescale stored original pixmap to fit
-        try:
-            if hasattr(self, '_pixmap_original') and not self._pixmap_original.isNull():
-                target_w = max(1, self.width())
-                target_h = max(1, self.height())
-                scaled = self._pixmap_original.scaled(target_w, target_h, QtCore.Qt.AspectRatioMode.KeepAspectRatio, QtCore.Qt.TransformationMode.SmoothTransformation)
-                self._label.setPixmap(scaled)
-        except Exception:
-            pass
+
+        if self._pixmap_original and not self._pixmap_original.isNull():
+
+            scaled = self._pixmap_original.scaled(
+                self.size(),
+                QtCore.Qt.AspectRatioMode.KeepAspectRatio,
+                QtCore.Qt.TransformationMode.SmoothTransformation
+            )
+
+            self._label.setPixmap(scaled)
+
         super().resizeEvent(event)
 
     def loadImage(self, path):
@@ -650,11 +727,46 @@ class CSDisplayControls(QWidget):
     def __init__(self):
         super().__init__()
 
-        # window tile
+        # window title
         self.setWindowTitle("Control Window")
-        # add Vertical layout
-        self._layout = QVBoxLayout()
-        self.setLayout(self._layout)
+        
+        # Main layout for the widget
+        mainLayout = QVBoxLayout(self)
+        mainLayout.setContentsMargins(0, 0, 0, 0)
+        mainLayout.setSpacing(0)
+        
+        # Create scroll area for handling multiple expanded light sections
+        scrollArea = QScrollArea()
+        scrollArea.setWidgetResizable(True)
+        scrollArea.setStyleSheet("""
+            QScrollArea {
+                border: none;
+                background-color: white;
+            }
+            QScrollBar:vertical {
+                border: 1px solid #ddd;
+                background-color: #f5f5f5;
+                width: 12px;
+            }
+            QScrollBar::handle:vertical {
+                background-color: #bbb;
+                border-radius: 6px;
+                min-height: 20px;
+            }
+            QScrollBar::handle:vertical:hover {
+                background-color: #999;
+            }
+        """)
+        
+        # Container widget inside scroll area
+        container = QWidget()
+        self._layout = QVBoxLayout(container)
+        self._layout.setContentsMargins(5, 5, 5, 5)
+        self._layout.setSpacing(10)
+        
+        scrollArea.setWidget(container)
+        mainLayout.addWidget(scrollArea)
+        self.setLayout(mainLayout)
 # ----------------------------------------------------------------------------------		
 class CSQSaturationLayout(QVBoxLayout):
     
@@ -686,15 +798,33 @@ class CSQSaturationLayout(QVBoxLayout):
         self._sliderGammaSaturation = QSlider(QtCore.Qt.Orientation.Horizontal)
         self._sliderGammaSaturation.setValue(50)
 
-        # add  to layout
-        self.addWidget(self._linearSaturationValueLabel)
+        # reset buttons (linear and gamma)
+        self._resetLinearButton = QPushButton("Reset")
+        self._resetGammaButton = QPushButton("Reset")
+
+        # add  to layout with reset buttons
+        linearRow = QHBoxLayout()
+        linearRow.addWidget(self._linearSaturationValueLabel)
+        linearRow.addStretch()
+        linearRow.addWidget(self._resetLinearButton)
+
+        gammaRow = QHBoxLayout()
+        gammaRow.addWidget(self._gammaSaturationValueLabel)
+        gammaRow.addStretch()
+        gammaRow.addWidget(self._resetGammaButton)
+
+        self.addLayout(linearRow)
         self.addWidget(self._sliderLinearSaturation)
-        self.addWidget(self._gammaSaturationValueLabel)
+        self.addLayout(gammaRow)
         self.addWidget(self._sliderGammaSaturation)
 
         # slider
         self._sliderLinearSaturation.valueChanged.connect(self.sliderLinearSaturationValueChanged) 
         self._sliderGammaSaturation.valueChanged.connect(self.sliderGammaSaturationValueChanged) 
+
+        # reset callbacks
+        self._resetLinearButton.clicked.connect(self.resetLinear)
+        self._resetGammaButton.clicked.connect(self.resetGamma)
 
     def sliderLinearSaturationValueChanged(self,value): 
         self._linearSaturation = (2*value/100.0 -1.0)*self._range
@@ -705,4 +835,13 @@ class CSQSaturationLayout(QVBoxLayout):
         self._gammaSaturation = (2*value/100.0 -1.0)*self._range
         self._gammaSaturationValueLabel.setText("gamma saturation: "+"{:+.0f}".format(self._gammaSaturation))
         self.gamma_saturation_changed.emit(self._gammaSaturation)
+
+    def resetLinear(self):
+        # set slider to midpoint (50)
+        self._sliderLinearSaturation.setValue(50)
+        self.sliderLinearSaturationValueChanged(50)
+
+    def resetGamma(self):
+        self._sliderGammaSaturation.setValue(50)
+        self.sliderGammaSaturationValueChanged(50)
 # ----------------------------------------------------------------------------------

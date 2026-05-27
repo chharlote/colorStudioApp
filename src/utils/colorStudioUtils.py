@@ -44,6 +44,14 @@ def loadImage(filename, scale=0.5):
         scale      - Optional  : scaling factor [=0.5] (Float)
     """
     img = skimage.io.imread(filename)
+    
+    # Convert RGBA to RGB if necessary (remove alpha channel)
+    if len(img.shape) == 3 and img.shape[2] == 4:
+        img = skimage.color.rgba2rgb(img)
+    elif len(img.shape) == 2:
+        # Convert grayscale to RGB
+        img = skimage.color.gray2rgb(img)
+    
     imgDouble = 1.0*img/255.0
     if scale != 1.0 :
         imgDouble = skimage.transform.rescale(imgDouble, scale, anti_aliasing=True, channel_axis= 2 )
