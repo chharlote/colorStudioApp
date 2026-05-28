@@ -75,7 +75,7 @@ class CSUIBuilder:
 def _hline():
     line = QFrame()
     line.setFrameShape(QFrame.Shape.HLine)
-    line.setStyleSheet("color: #2a2a4a; margin: 0; padding: 0;")
+    line.setStyleSheet("color: #1a1a1a; margin: 0; padding: 0;")
     line.setFixedHeight(1)
     return line
 
@@ -83,7 +83,7 @@ def _hline():
 def _section_label(text):
     lbl = QLabel(text.upper())
     lbl.setStyleSheet(
-        "color:#4a4a7a; font-size:9px; font-weight:700;"
+        "color:#555555; font-size:9px; font-weight:700;"
         " letter-spacing:2.5px; padding:6px 4px 2px 4px; background:transparent;"
     )
     return lbl
@@ -124,14 +124,14 @@ class CSUIAllBuilder(CSUIBuilder):
         self._mainWindow = QMainWindow()
         self._mainWindow.setWindowTitle("Color Studio")
         self._mainWindow.setMinimumSize(900, 600)
-        self._mainWindow.setStyleSheet("QMainWindow { background: #1a1a2e; }")
+        self._mainWindow.setStyleSheet("QMainWindow { background: #2b2b2b; }")
 
         self._buildMenuBar()
 
         self._statusBar = QStatusBar()
         self._statusBar.setStyleSheet(
-            "QStatusBar { background:#0f0f1a; color:#4a4a7a;"
-            " border-top:1px solid #2a2a4a; font-size:11px; padding:0 8px; }"
+            "QStatusBar { background:#222222; color:#555555;"
+            " border-top:1px solid #1a1a1a; font-size:11px; padding:0 8px; }"
         )
         self._statusBar.showMessage("Color Studio  —  ready")
         self._mainWindow.setStatusBar(self._statusBar)
@@ -140,7 +140,7 @@ class CSUIAllBuilder(CSUIBuilder):
         # Layout: left | vline | render | vline | side
         # -------------------------------------------------------
         central = QWidget()
-        central.setStyleSheet("background:#1a1a2e;")
+        central.setStyleSheet("background:#2b2b2b;")
         rootLayout = QHBoxLayout(central)
         rootLayout.setContentsMargins(0, 0, 0, 0)
         rootLayout.setSpacing(0)
@@ -234,7 +234,7 @@ class CSUIAllBuilder(CSUIBuilder):
         self._leftPanel = QWidget()
         self._leftPanel.setObjectName("leftPanel")
         self._leftPanel.setStyleSheet(
-            "QWidget#leftPanel { background-color:#16213e; border-right:1px solid #2a2a4a; }"
+            "QWidget#leftPanel { background-color:#2b2b2b; border-right:1px solid #1a1a1a; }"
         )
         self._leftPanel.setFixedWidth(CSUIBuilder.template['uiControlWidget_size'][0])
 
@@ -285,24 +285,28 @@ class CSUIAllBuilder(CSUIBuilder):
         self._controlWidget._layout.addWidget(_hline())
         self._controlWidget._layout.addWidget(_section_label("Post-Processing"))
 
+        # Auto Exposure
         ae = colorStudioModel.AE_Ymean(Ytarget=0.5, exposure=0.0)
         lightsScene.addPostProcess(ae)
         aeSection = colorStudioWidget.CSQCollapsibleSection("  Auto Exposure", expanded=True)
         AE_layout = colorStudioWidget.CSQAEControlLayout(None)
         aeSection.addWidget(AE_layout)
         self._controlWidget._layout.addWidget(aeSection)
-        ae_controller = colorStudioController.CSAEController(lightsScene, ae, [])
-        AE_layout.exposure_changed.connect(ae_controller.on_exposure_changed)
+        
+        self._ae_controller = colorStudioController.CSAEController(lightsScene, ae, [self._renderWidget])
+        AE_layout.exposure_changed.connect(self._ae_controller.on_exposure_changed)
 
+        # Saturation
         sat = colorStudioModel.Saturation()
         lightsScene.addPostProcess(sat)
         satSection = colorStudioWidget.CSQCollapsibleSection("  Saturation", expanded=True)
         sat_layout = colorStudioWidget.CSQSaturationLayout(None)
         satSection.addLayout(sat_layout)
         self._controlWidget._layout.addWidget(satSection)
-        sat_controller = colorStudioController.CSSaturationController(lightsScene, sat, [])
-        sat_layout.linear_saturation_changed.connect(sat_controller.on_linear_saturation_changed)
-        sat_layout.gamma_saturation_changed.connect(sat_controller.on_gamma_saturation_changed)
+        
+        self._sat_controller = colorStudioController.CSSaturationController(lightsScene, sat, [self._renderWidget])
+        sat_layout.linear_saturation_changed.connect(self._sat_controller.on_linear_saturation_changed)
+        sat_layout.gamma_saturation_changed.connect(self._sat_controller.on_gamma_saturation_changed)
 
         self._controlWidget._layout.addStretch()
         return self._leftPanel
@@ -312,14 +316,14 @@ class CSUIAllBuilder(CSUIBuilder):
     # ------------------------------------------------------------------
     def _buildRightZone(self, lightsScene):
         container = QWidget()
-        container.setStyleSheet("background:#1a1a2e;")
+        container.setStyleSheet("background:#2b2b2b;")
         hLayout = QHBoxLayout(container)
         hLayout.setContentsMargins(0, 0, 0, 0)
         hLayout.setSpacing(0)
 
         # Render
         renderContainer = QWidget()
-        renderContainer.setStyleSheet("background:#0a0a18;")
+        renderContainer.setStyleSheet("background:#1e1e1e;")
         renderLayout = QVBoxLayout(renderContainer)
         renderLayout.setContentsMargins(0, 0, 0, 0)
         renderLayout.setSpacing(0)
@@ -339,7 +343,7 @@ class CSUIAllBuilder(CSUIBuilder):
         toolbar = QWidget()
         toolbar.setFixedHeight(36)
         toolbar.setStyleSheet(
-            "QWidget { background-color:#0f0f1a; border-bottom:1px solid #2a2a4a; }"
+            "QWidget { background-color:#222222; border-bottom:1px solid #1a1a1a; }"
         )
         layout = QHBoxLayout(toolbar)
         layout.setContentsMargins(12, 0, 12, 0)
@@ -347,7 +351,7 @@ class CSUIAllBuilder(CSUIBuilder):
 
         renderLbl = QLabel("RENDER OUTPUT")
         renderLbl.setStyleSheet(
-            "color:#3a3a6a; font-size:9px; font-weight:700;"
+            "color:#444444; font-size:9px; font-weight:700;"
             " letter-spacing:2.5px; background:transparent;"
         )
 
@@ -375,12 +379,12 @@ class CSUIAllBuilder(CSUIBuilder):
         btn.setToolTip(tooltip)
         btn.setStyleSheet("""
             QPushButton {
-                background:transparent; color:#5a5a8a;
-                border:1px solid #2a2a4a; border-radius:4px;
+                background:transparent; color:#666666;
+                border:1px solid #333333; border-radius:3px;
                 padding:0 10px; font-size:11px; font-weight:600;
             }
-            QPushButton:hover { background:#2a2a4a; color:#a89cf7; border-color:#5a4af7; }
-            QPushButton:pressed { background:#3a3a6a; }
+            QPushButton:hover { background:#3a3a3a; color:#aaaaaa; border-color:#555555; }
+            QPushButton:pressed { background:#444444; }
         """)
         return btn
 
@@ -391,7 +395,7 @@ class CSUIAllBuilder(CSUIBuilder):
         self._sidePanel = QWidget()
         self._sidePanel.setObjectName("sidePanel")
         self._sidePanel.setStyleSheet(
-            "QWidget#sidePanel { background-color:#13132a; border-left:1px solid #2a2a4a; }"
+            "QWidget#sidePanel { background-color:#272727; border-left:1px solid #1a1a1a; }"
         )
 
         cw, ch = CSUIBuilder.template['uiColor3DWidget_size']
@@ -405,13 +409,13 @@ class CSUIAllBuilder(CSUIBuilder):
         titleBar = QWidget()
         titleBar.setFixedHeight(36)
         titleBar.setStyleSheet(
-            "QWidget { background-color:#0f0f1a; border-bottom:1px solid #2a2a4a; }"
+            "QWidget { background-color:#222222; border-bottom:1px solid #1a1a1a; }"
         )
         titleLayout = QHBoxLayout(titleBar)
         titleLayout.setContentsMargins(12, 0, 12, 0)
         sideLbl = QLabel("VISUALIZATION")
         sideLbl.setStyleSheet(
-            "color:#3a3a6a; font-size:9px; font-weight:700;"
+            "color:#444444; font-size:9px; font-weight:700;"
             " letter-spacing:2.5px; background:transparent;"
         )
         titleLayout.addWidget(sideLbl)
@@ -431,10 +435,10 @@ class CSUIAllBuilder(CSUIBuilder):
         layout.addWidget(color3DSection)
 
         # Hint pour la roue
-        hintLbl = QLabel("Click a light's color button\nto open the color wheel")
+        hintLbl = QLabel("")
         hintLbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
         hintLbl.setStyleSheet(
-            "color:#3a3a6a; font-size:11px; font-style:italic;"
+            "color:#444444; font-size:11px; font-style:italic;"
             " padding:16px; background:transparent;"
         )
         layout.addWidget(hintLbl)
@@ -478,7 +482,7 @@ class CSUIAllBuilder(CSUIBuilder):
         line = QFrame()
         line.setFrameShape(QFrame.Shape.VLine)
         line.setFixedWidth(1)
-        line.setStyleSheet("color:#2a2a4a;")
+        line.setStyleSheet("color:#1a1a1a;")
         return line
 
     def _toggleLeftPanel(self):

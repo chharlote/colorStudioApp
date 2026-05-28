@@ -217,10 +217,10 @@ class CSQCollapsibleSection(QWidget):
         self._content.setObjectName("sectionContent")
         self._content.setStyleSheet("""
             QWidget#sectionContent {
-                background-color: #1a1a35;
-                border-left: 2px solid #3a3a7a;
-                border-bottom-left-radius: 6px;
-                border-bottom-right-radius: 6px;
+                background-color: #2e2e2e;
+                border-left: 2px solid #444444;
+                border-bottom-left-radius: 4px;
+                border-bottom-right-radius: 4px;
             }
         """)
         self._contentLayout = QVBoxLayout(self._content)
@@ -278,7 +278,7 @@ class CSQLightControlLayout(QVBoxLayout):
 
         expLbl = QLabel("Exposure")
         expLbl.setFixedWidth(66)
-        expLbl.setStyleSheet("color: #8888aa; font-size: 11px; font-weight: 600; letter-spacing: 0.5px;")
+        expLbl.setStyleSheet("color: #777777; font-size: 11px; font-weight: 600;")
 
         self._deButton = QPushButton("−")   # U+2212 minus sign — visually cleaner
         self._deButton.setFixedSize(30, 30)
@@ -291,10 +291,10 @@ class CSQLightControlLayout(QVBoxLayout):
         self._exposureValueLabel.setObjectName("exposureValue")
         self._exposureValueLabel.setStyleSheet("""
             QLabel {
-                background-color: #0f0f22;
-                color: #a89cf7;
-                border: 1px solid #3a3a6a;
-                border-radius: 4px;
+                background-color: #222222;
+                color: #aaaaaa;
+                border: 1px solid #1e1e1e;
+                border-radius: 3px;
                 font-family: 'Consolas', 'Fira Code', monospace;
                 font-size: 12px;
                 font-weight: 600;
@@ -320,7 +320,7 @@ class CSQLightControlLayout(QVBoxLayout):
 
         colorLbl = QLabel("Color")
         colorLbl.setFixedWidth(66)
-        colorLbl.setStyleSheet("color: #8888aa; font-size: 11px; font-weight: 600; letter-spacing: 0.5px;")
+        colorLbl.setStyleSheet("color: #777777; font-size: 11px; font-weight: 600;")
 
         self._ccButton = QPushButton()
         self._ccButton.setFixedSize(40, 26)
@@ -329,7 +329,7 @@ class CSQLightControlLayout(QVBoxLayout):
 
         self._colorHexLabel = QLabel(self._rgb_to_hex(self._light_color))
         self._colorHexLabel.setStyleSheet("""
-            color: #6666aa;
+            color: #666666;
             font-family: 'Consolas', monospace;
             font-size: 11px;
         """)
@@ -346,7 +346,7 @@ class CSQLightControlLayout(QVBoxLayout):
 
         posLbl = QLabel("Position")
         posLbl.setFixedWidth(66)
-        posLbl.setStyleSheet("color: #8888aa; font-size: 11px; font-weight: 600; letter-spacing: 0.5px;")
+        posLbl.setStyleSheet("color: #777777; font-size: 11px; font-weight: 600;")
 
         self._sliderPosition = QSlider(Qt.Orientation.Horizontal)
         self._sliderPosition.setValue(lightPosIdx)
@@ -356,7 +356,7 @@ class CSQLightControlLayout(QVBoxLayout):
         self._posValueLabel = QLabel(str(lightPosIdx))
         self._posValueLabel.setFixedWidth(28)
         self._posValueLabel.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-        self._posValueLabel.setStyleSheet("color: #6666aa; font-size: 11px;")
+        self._posValueLabel.setStyleSheet("color: #666666; font-size: 11px;")
 
         posRow.addWidget(posLbl)
         posRow.addWidget(self._sliderPosition)
@@ -378,38 +378,21 @@ class CSQLightControlLayout(QVBoxLayout):
     # ── Private helpers ───────────────────────
 
     def _btn_style(self, accent=False):
-        if accent:
-            return """
-                QPushButton {
-                    background-color: #2a2a5a;
-                    color: #a89cf7;
-                    border: 1px solid #5a4af7;
-                    border-radius: 5px;
-                    font-size: 18px;
-                    font-weight: 700;
-                }
-                QPushButton:hover {
-                    background-color: #7c6af7;
-                    border-color: #a89cf7;
-                    color: #fff;
-                }
-                QPushButton:pressed { background-color: #5a3af0; }
-            """
         return """
             QPushButton {
-                background-color: #1e1e3a;
-                color: #7c8aaa;
-                border: 1px solid #3a3a6a;
-                border-radius: 5px;
-                font-size: 18px;
+                background-color: #333333;
+                color: #999999;
+                border: 1px solid #1e1e1e;
+                border-radius: 4px;
+                font-size: 16px;
                 font-weight: 700;
             }
             QPushButton:hover {
-                background-color: #2a2a5a;
-                border-color: #7c6af7;
-                color: #c8c8d4;
+                background-color: #444444;
+                color: #cccccc;
+                border-color: #555555;
             }
-            QPushButton:pressed { background-color: #3a3a7a; }
+            QPushButton:pressed { background-color: #505050; }
         """
 
     def _rgb_to_hex(self, rgb):
@@ -495,9 +478,9 @@ class CSQAEControlLayout(QWidget):
 
         self.setStyleSheet("""
             QWidget {
-                background-color: #1e1e3a;
-                border: 1px solid #2a2a5a;
-                border-radius: 8px;
+                background-color: #303030;
+                border: 1px solid #1e1e1e;
+                border-radius: 5px;
             }
         """)
 
@@ -519,12 +502,12 @@ class CSQAEControlLayout(QWidget):
         self._deButton.setToolTip("Decrease global exposure")
         self._deButton.setStyleSheet("""
             QPushButton {
-                background: #1a2a4a; color: #7cd4f7;
-                border: 1px solid #2a4a6a; border-radius: 5px;
+                background: #333333; color: #999999;
+                border: 1px solid #1e1e1e; border-radius: 4px;
                 font-weight: 600; font-size: 12px; padding: 0 10px;
             }
-            QPushButton:hover { background: #2a3a6a; border-color: #7cd4f7; }
-            QPushButton:pressed { background: #7cd4f7; color: #0f0f2a; }
+            QPushButton:hover { background: #444444; color: #cccccc; }
+            QPushButton:pressed { background: #505050; }
         """)
 
         self._ieButton = QPushButton("EV +")
@@ -561,16 +544,16 @@ class CSQAEControlLayout(QWidget):
     def _toggle_style(self, on):
         if on:
             return """
-                QPushButton { background:#1a4a2a; color:#5cf7a0;
-                  border:1px solid #2a7a4a; border-radius:5px;
+                QPushButton { background:#333333; color:#aaaaaa;
+                  border:1px solid #1e1e1e; border-radius:4px;
                   font-weight:700; font-size:11px; }
-                QPushButton:hover { background:#2a6a3a; }
+                QPushButton:hover { background:#444444; color:#cccccc; }
             """
         return """
-            QPushButton { background:#3a1a1a; color:#f77c7c;
-              border:1px solid #6a2a2a; border-radius:5px;
+            QPushButton { background:#2a2a2a; color:#777777;
+              border:1px solid #1a1a1a; border-radius:4px;
               font-weight:700; font-size:11px; }
-            QPushButton:hover { background:#5a2a2a; }
+            QPushButton:hover { background:#333333; color:#999999; }
         """
 
     def switch_on_off(self):
@@ -614,7 +597,7 @@ class CSDisplayWidget(QWidget):
         self._label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._label.setScaledContents(False)
         self._label.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
-        self._label.setStyleSheet("background: #0a0a18;")
+        self._label.setStyleSheet("background: #1e1e1e;")
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -625,7 +608,7 @@ class CSDisplayWidget(QWidget):
         self._pixmap_original = None
 
         # Subtle inner shadow effect
-        self.setStyleSheet("background: #0a0a18; border-radius: 0px;")
+        self.setStyleSheet("background: #1e1e1e;")
 
     def _update(self, imgDouble):
         try:
@@ -734,8 +717,8 @@ class CSDisplayColorWheel(QWidget):
         outer.setGeometry(10, 10, self._width, self._height)
         outer.setStyleSheet("""
             QWidget {
-                background-color: #13132a;
-                border: 1px solid #3a3a6a;
+                background-color: #2a2a2a;
+                border: 1px solid #444444;
                 border-radius: 130px;
             }
         """)
@@ -766,14 +749,14 @@ class CSDisplayColorWheel(QWidget):
         closeBtn.setGeometry(self._width - 28, 6, 22, 22)
         closeBtn.setStyleSheet("""
             QPushButton {
-                background: rgba(30,30,60,0.8);
-                color: #6666aa;
-                border: 1px solid #3a3a6a;
+                background: rgba(30,30,30,0.85);
+                color: #777777;
+                border: 1px solid #444444;
                 border-radius: 11px;
                 font-size: 10px;
                 font-weight: 700;
             }
-            QPushButton:hover { background: #5a4af7; color: white; }
+            QPushButton:hover { background: #555555; color: #eeeeee; }
         """)
         closeBtn.clicked.connect(self.close)
 
@@ -900,7 +883,7 @@ class CSDisplayControls(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Controls")
-        self.setStyleSheet("background-color: #16213e;")
+        self.setStyleSheet("background-color: #2b2b2b;")
 
         mainLayout = QVBoxLayout(self)
         mainLayout.setContentsMargins(0, 0, 0, 0)
@@ -911,23 +894,23 @@ class CSDisplayControls(QWidget):
         titleBar.setFixedHeight(42)
         titleBar.setStyleSheet("""
             QWidget {
-                background-color: #0f0f1a;
-                border-bottom: 1px solid #2a2a5a;
+                background-color: #222222;
+                border-bottom: 1px solid #1a1a1a;
             }
         """)
         titleLayout = QHBoxLayout(titleBar)
         titleLayout.setContentsMargins(14, 0, 14, 0)
 
         dot1 = QLabel("●")
-        dot1.setStyleSheet("color: #f7a070; font-size: 10px; background: transparent; border:none;")
+        dot1.setStyleSheet("color: #888888; font-size: 8px; background: transparent; border:none;")
         dot2 = QLabel("●")
-        dot2.setStyleSheet("color: #f7d070; font-size: 10px; background: transparent; border:none;")
+        dot2.setStyleSheet("color: #888888; font-size: 8px; background: transparent; border:none;")
         dot3 = QLabel("●")
-        dot3.setStyleSheet("color: #70f7a0; font-size: 10px; background: transparent; border:none;")
+        dot3.setStyleSheet("color: #888888; font-size: 8px; background: transparent; border:none;")
 
         panelTitle = QLabel("LIGHTS & CONTROLS")
         panelTitle.setStyleSheet("""
-            color: #5a5a8a;
+            color: #555555;
             font-size: 10px;
             font-weight: 700;
             letter-spacing: 2px;
@@ -949,20 +932,20 @@ class CSDisplayControls(QWidget):
         scrollArea.setWidgetResizable(True)
         scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         scrollArea.setStyleSheet("""
-            QScrollArea { border: none; background-color: #16213e; }
+            QScrollArea { border: none; background-color: #2b2b2b; }
             QScrollBar:vertical {
-                border: none; background: #1a1a2e;
+                border: none; background: #222222;
                 width: 6px; border-radius: 3px;
             }
             QScrollBar::handle:vertical {
-                background: #3a3a6a; border-radius: 3px; min-height: 20px;
+                background: #555555; border-radius: 3px; min-height: 20px;
             }
-            QScrollBar::handle:vertical:hover { background: #7c6af7; }
+            QScrollBar::handle:vertical:hover { background: #777777; }
             QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }
         """)
 
         container = QWidget()
-        container.setStyleSheet("background-color: #16213e;")
+        container.setStyleSheet("background-color: #2b2b2b;")
         self._layout = QVBoxLayout(container)
         self._layout.setContentsMargins(8, 8, 8, 8)
         self._layout.setSpacing(4)
@@ -991,20 +974,20 @@ class CSQSaturationLayout(QVBoxLayout):
 
         # Linear saturation
         linLbl = QLabel("Saturation")
-        linLbl.setStyleSheet("color: #8888aa; font-size: 11px; font-weight: 600;")
+        linLbl.setStyleSheet("color: #777777; font-size: 11px; font-weight: 600;")
         self._linearSaturationValueLabel = QLabel("+0")
         self._linearSaturationValueLabel.setFixedWidth(32)
         self._linearSaturationValueLabel.setAlignment(Qt.AlignmentFlag.AlignRight)
         self._linearSaturationValueLabel.setStyleSheet(
-            "color: #a89cf7; font-family: 'Consolas', monospace; font-size: 11px;"
+            "color: #999999; font-family: 'Consolas', monospace; font-size: 11px;"
         )
         self._resetLinearButton = QPushButton("↺")
         self._resetLinearButton.setFixedSize(22, 22)
         self._resetLinearButton.setToolTip("Reset linear saturation")
         self._resetLinearButton.setStyleSheet("""
-            QPushButton { background:#1e1e3a; color:#6666aa;
-              border:1px solid #3a3a6a; border-radius:4px; font-size:13px; }
-            QPushButton:hover { color:#a89cf7; border-color:#7c6af7; }
+            QPushButton { background:transparent; color:#666666;
+              border:1px solid #333333; border-radius:3px; font-size:13px; }
+            QPushButton:hover { color:#aaaaaa; border-color:#555555; }
         """)
 
         linRow = QHBoxLayout()
@@ -1021,12 +1004,12 @@ class CSQSaturationLayout(QVBoxLayout):
 
         # Gamma saturation
         gamLbl = QLabel("Gamma Sat.")
-        gamLbl.setStyleSheet("color: #8888aa; font-size: 11px; font-weight: 600;")
+        gamLbl.setStyleSheet("color: #777777; font-size: 11px; font-weight: 600;")
         self._gammaSaturationValueLabel = QLabel("+0")
         self._gammaSaturationValueLabel.setFixedWidth(32)
         self._gammaSaturationValueLabel.setAlignment(Qt.AlignmentFlag.AlignRight)
         self._gammaSaturationValueLabel.setStyleSheet(
-            "color: #7cd4f7; font-family: 'Consolas', monospace; font-size: 11px;"
+            "color: #999999; font-family: 'Consolas', monospace; font-size: 11px;"
         )
         self._resetGammaButton = QPushButton("↺")
         self._resetGammaButton.setFixedSize(22, 22)
