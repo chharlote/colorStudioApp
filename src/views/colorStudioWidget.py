@@ -102,8 +102,7 @@ class HelloWorld2D:
                 }
             ''',
         )
-
-        self.vbo = ctx.buffer(reserve='1024MB', dynamic=True)
+        self.vbo = ctx.buffer(reserve=reserve, dynamic=True)
         self.vao = ctx.simple_vertex_array(self.prog, self.vbo, 'in_vert', 'in_color')
 
     def pan(self, pos):
@@ -119,6 +118,9 @@ class HelloWorld2D:
         if type == 'line':
             self.ctx.line_width = 1.0
             self.vao.render(moderngl.LINE_STRIP, vertices=len(data) // 24)
+        if type == 'lines':
+            self.ctx.line_width = 1.5
+            self.vao.render(moderngl.LINES, vertices=len(data) // 24)
         if type == 'points':
             self.ctx.point_size = 3.0
             self.vao.render(moderngl.POINTS, vertices=len(data) // 24)
@@ -162,12 +164,34 @@ class MyWidgetGL(QModernGLWidget):
     def __init__(self, img, scene=None):
         super(MyWidgetGL, self).__init__()
         self.VBOdata = colorStudioUtils.img2chromaVertices(img, False)
+        self._pan_tool = PanTool()
         self.setWindowTitle("3D Color")
 
+    def _compute_centroid(self):
+        data = self.VBOdata.reshape(-1, 6)
+        return float(np.mean(data[:, 0])), float(np.mean(data[:, 1]))
+
+    def _build_axes_data(self):
+        g, a = 0.55, 1.0
+        axes = np.array([
+            [-2.0,  0.0, g, g, g, a],
+            [ 2.0,  0.0, g, g, g, a],
+            [ 0.0, -2.0, g, g, g, a],
+            [ 0.0,  2.0, g, g, g, a],
+        ], dtype=np.float32)
+        return axes.reshape(1, -1, 6)
+
+    def _apply_pan(self):
+        self.scene.pan(self._pan_tool.value)
 
     def init(self):
         self.ctx.viewport = (0, 0, self.width(), self.height())
         self.scene = HelloWorld2D(self.ctx)
+        self._axes_data = self._build_axes_data()
+        cx, cy = self._compute_centroid()
+        self._pan_tool.total_x = cx
+        self._pan_tool.total_y = cy
+        self._apply_pan()
 
     def resizeGL(self, width, height):
         if hasattr(self, 'ctx'):
@@ -176,25 +200,31 @@ class MyWidgetGL(QModernGLWidget):
     def render(self):
         self.screen.use()
         self.scene.clear()
+        self.scene.plot(self._axes_data, type='lines')
         self.scene.plot(self.VBOdata)
 
     def mousePressEvent(self, evt):
-        pan_tool.start_drag(evt.position().x() / 512, evt.position().y() / 512)
-        self.scene.pan(pan_tool.value)
+        self._pan_tool.start_drag(evt.position().x() / 512, evt.position().y() / 512)
+        self._apply_pan()
         self.update()
 
     def mouseMoveEvent(self, evt):
-        pan_tool.dragging(evt.position().x() / 512, evt.position().y() / 512)
-        self.scene.pan(pan_tool.value)
+        self._pan_tool.dragging(evt.position().x() / 512, evt.position().y() / 512)
+        self._apply_pan()
         self.update()
 
     def mouseReleaseEvent(self, evt):
-        pan_tool.stop_drag(evt.position().x() / 512, evt.position().y() / 512)
-        self.scene.pan(pan_tool.value)
+        self._pan_tool.stop_drag(evt.position().x() / 512, evt.position().y() / 512)
+        self._apply_pan()
         self.update()
 
     def _update(self,img):
         self.VBOdata = colorStudioUtils.img2chromaVertices(img, False)
+        if hasattr(self, 'scene') and hasattr(self, '_pan_tool'):
+            cx, cy = self._compute_centroid()
+            self._pan_tool.total_x = cx
+            self._pan_tool.total_y = cy
+            self._apply_pan()
         self.update()
 
     def loadImage(self, path):
