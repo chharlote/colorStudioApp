@@ -1,0 +1,68 @@
+{
+    "lights": [
+        {
+            "name": "Light",
+            "inputFile": {
+                "path": "C:/Users/charl/Documents/BUT3_semestre_6/sae_maintenance/colorStudioApp/assets/images/Scene/Light_",
+                "ext": ".exr",
+                "min": 0,
+                "max": 50,
+                "digit": 4,
+                "isHDR": true
+            },
+            "idxPos": 0,
+            "exp": 0.0,
+            "color": {
+                "r": 1.0,
+                "g": 1.0,
+                "b": 1.0
+            }
+        },
+        {
+            "name": "Light.001",
+            "inputFile": {
+                "path": "C:/Users/charl/Documents/BUT3_semestre_6/sae_maintenance/colorStudioApp/assets/images/Scene/Light.001_",
+                "ext": ".exr",
+                "min": 0,
+                "max": 50,
+                "digit": 4,
+                "isHDR": true
+            },
+            "idxPos": 0,
+            "exp": 0.0,
+            "color": {
+                "r": 1.0,
+                "g": 1.0,
+                "b": 1.0
+            }
+        }
+    ],
+    "postprocesses": [
+        {
+            "name": "white balance",
+            "chroma": {
+                "type": "AWB",
+                "color": {
+                    "r": 1.0,
+                    "g": 1.0,
+                    "b": 1.0
+                }
+            }
+        },
+        {
+            "name": "auto exposure",
+            "luminance": {
+                "type": "AE",
+                "y": 0.5
+            }
+        },
+        {
+            "name": "gamma",
+            "luminance": {
+                "type": "GAMMA",
+                "gamma": 1.2
+            }
+        }
+    ],
+    "renderFile": "C:/Users/charl/Documents/BUT3_semestre_6/sae_maintenance/colorStudioApp/assets/images//render_Scene_final.jpg"
+}

@@ -1,5 +1,5 @@
 /* ============================================================
-   Color Studio — Simple Neutral Theme
+   Color Studio — Thème SOMBRE (Dark)
    ============================================================ */
 
 QMainWindow, QWidget {
@@ -7,6 +7,37 @@ QMainWindow, QWidget {
     color: #cccccc;
     font-family: "Segoe UI", "Helvetica Neue", sans-serif;
     font-size: 13px;
+}
+
+/* ── Conteneurs nommés ── */
+QWidget#leftPanel {
+    background-color: #2b2b2b;
+    border-right: 1px solid #1a1a1a;
+}
+QWidget#sidePanel {
+    background-color: #272727;
+    border-left: 1px solid #1a1a1a;
+}
+QWidget#sectionContent {
+    background-color: #2e2e2e;
+    border-left: 2px solid #444444;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+QWidget#renderToolbar {
+    background-color: #222222;
+    border-bottom: 1px solid #1a1a1a;
+}
+QWidget#renderContainer {
+    background-color: #1e1e1e;
+}
+QWidget#controlsTitleBar {
+    background-color: #222222;
+    border-bottom: 1px solid #1a1a1a;
+}
+QWidget#sideTitleBar {
+    background-color: #222222;
+    border-bottom: 1px solid #1a1a1a;
 }
 
 /* ── Menu Bar ── */
@@ -63,9 +94,7 @@ QScrollBar::handle:vertical {
     border-radius: 3px;
     min-height: 20px;
 }
-QScrollBar::handle:vertical:hover {
-    background: #777777;
-}
+QScrollBar::handle:vertical:hover { background: #777777; }
 QScrollBar::add-line:vertical,
 QScrollBar::sub-line:vertical { height: 0; }
 
@@ -86,10 +115,7 @@ QToolButton {
     font-weight: 600;
     text-align: left;
 }
-QToolButton:hover {
-    background-color: #3d3d3d;
-    color: #cccccc;
-}
+QToolButton:hover  { background-color: #3d3d3d; color: #cccccc; }
 QToolButton:checked {
     background-color: #3a3a3a;
     color: #cccccc;
@@ -105,141 +131,72 @@ QPushButton {
     padding: 5px 12px;
     font-size: 12px;
 }
-QPushButton:hover {
-    background-color: #444444;
-    color: #dddddd;
-    border-color: #555555;
-}
-QPushButton:pressed {
-    background-color: #555555;
-    color: #eeeeee;
-}
-QPushButton:disabled {
-    background-color: #2e2e2e;
-    color: #555555;
-    border-color: #222222;
-}
+QPushButton:hover   { background-color: #444444; color: #dddddd; border-color: #555555; }
+QPushButton:pressed { background-color: #555555; color: #eeeeee; }
+QPushButton:disabled { background-color: #2e2e2e; color: #555555; border-color: #222222; }
 
 /* ── Exposure +/- buttons ── */
 QPushButton[text="-"],
-QPushButton[text="+"]{
-    background-color: #333333;
-    color: #aaaaaa;
-    border: 1px solid #1e1e1e;
-    border-radius: 4px;
-    font-size: 16px;
-    font-weight: 700;
-    padding: 0;
+QPushButton[text="+"] {
+    background-color: #333333; color: #aaaaaa;
+    border: 1px solid #1e1e1e; border-radius: 4px;
+    font-size: 16px; font-weight: 700; padding: 0;
     min-width: 30px; max-width: 30px;
     min-height: 30px; max-height: 30px;
 }
-QPushButton[text="-"]:hover,
-QPushButton[text="+"]:hover {
-    background-color: #444444;
-    color: #cccccc;
-}
-QPushButton[text="-"]:pressed,
-QPushButton[text="+"]:pressed {
-    background-color: #505050;
-}
+QPushButton[text="-"]:hover, QPushButton[text="+"]:hover { background-color: #444444; color: #cccccc; }
+QPushButton[text="-"]:pressed, QPushButton[text="+"]:pressed { background-color: #505050; }
 
 /* ── EV +/- (AE panel) ── */
-QPushButton[text="EV +"],
-QPushButton[text="EV -"],
-QPushButton[text="EV +"],
-QPushButton[text="EV \u2212"] {
-    background-color: #333333;
-    color: #999999;
-    border: 1px solid #1e1e1e;
-    border-radius: 4px;
-    padding: 3px 10px;
-    font-size: 12px;
+QPushButton[text="EV +"], QPushButton[text="EV -"], QPushButton[text="EV \u2212"] {
+    background-color: #333333; color: #999999;
+    border: 1px solid #1e1e1e; border-radius: 4px;
+    padding: 3px 10px; font-size: 12px;
 }
-QPushButton[text="EV +"]:hover,
-QPushButton[text="EV -"]:hover {
-    background-color: #444444;
-    color: #cccccc;
-}
+QPushButton[text="EV +"]:hover, QPushButton[text="EV -"]:hover { background-color: #444444; color: #cccccc; }
 
 /* ── Reset buttons ── */
-QPushButton[text="Reset"],
-QPushButton[text="\u21ba"] {
-    background-color: transparent;
-    color: #666666;
-    border: 1px solid #333333;
-    border-radius: 3px;
-    padding: 2px 8px;
-    font-size: 11px;
+QPushButton[text="Reset"], QPushButton[text="\u21ba"] {
+    background-color: transparent; color: #666666;
+    border: 1px solid #333333; border-radius: 3px;
+    padding: 2px 8px; font-size: 11px;
 }
-QPushButton[text="Reset"]:hover,
-QPushButton[text="\u21ba"]:hover {
-    background-color: #3a3a3a;
-    color: #999999;
+QPushButton[text="Reset"]:hover, QPushButton[text="\u21ba"]:hover {
+    background-color: #3a3a3a; color: #999999;
 }
 
 /* ── Sliders ── */
-QSlider::groove:horizontal {
-    height: 3px;
-    background: #3a3a3a;
-    border-radius: 2px;
-}
+QSlider::groove:horizontal { height: 3px; background: #3a3a3a; border-radius: 2px; }
 QSlider::handle:horizontal {
-    background: #888888;
-    border: 1px solid #666666;
-    width: 12px;
-    height: 12px;
-    border-radius: 6px;
-    margin: -5px -1px;
+    background: #888888; border: 1px solid #666666;
+    width: 12px; height: 12px; border-radius: 6px; margin: -5px -1px;
 }
-QSlider::handle:horizontal:hover {
-    background: #aaaaaa;
-    border-color: #aaaaaa;
-}
-QSlider::sub-page:horizontal {
-    background: #666666;
-    border-radius: 2px;
-}
+QSlider::handle:horizontal:hover { background: #aaaaaa; border-color: #aaaaaa; }
+QSlider::sub-page:horizontal { background: #666666; border-radius: 2px; }
 
 /* ── Tooltip ── */
 QToolTip {
-    background-color: #333333;
-    color: #cccccc;
-    border: 1px solid #1a1a1a;
-    border-radius: 3px;
-    padding: 4px 8px;
-    font-size: 11px;
+    background-color: #333333; color: #cccccc;
+    border: 1px solid #1a1a1a; border-radius: 3px;
+    padding: 4px 8px; font-size: 11px;
 }
 
 /* ── Status bar ── */
 QStatusBar {
-    background-color: #222222;
-    color: #555555;
-    border-top: 1px solid #1a1a1a;
-    font-size: 11px;
-    padding: 0 8px;
+    background-color: #222222; color: #555555;
+    border-top: 1px solid #1a1a1a; font-size: 11px; padding: 0 8px;
 }
 
 /* ── Separators ── */
-QFrame[frameShape="4"],
-QFrame[frameShape="5"] {
-    color: #1a1a1a;
-}
+QFrame[frameShape="4"], QFrame[frameShape="5"] { color: #1a1a1a; }
 
 /* ── Group box ── */
 QGroupBox {
-    background-color: #303030;
-    border: 1px solid #1e1e1e;
-    border-radius: 5px;
-    margin-top: 16px;
-    padding: 6px;
-    color: #777777;
-    font-size: 11px;
-    font-weight: 600;
+    background-color: #303030; border: 1px solid #1e1e1e;
+    border-radius: 5px; margin-top: 16px; padding: 6px;
+    color: #777777; font-size: 11px; font-weight: 600;
 }
 QGroupBox::title {
-    subcontrol-origin: margin;
-    subcontrol-position: top left;
-    padding: 0 5px;
-    left: 8px;
-    color: #888888;
+    subcontrol-origin: margin; subcontrol-position: top left;
+    padding: 0 5px; left: 8px; color: #888888;
 }
