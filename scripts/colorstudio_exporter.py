@@ -17,6 +17,12 @@ class ColorStudioSettings(bpy.types.PropertyGroup):
         subtype='DIR_PATH'
     )
     
+    json_filename: bpy.props.StringProperty(
+        name="Suffixe du JSON",
+        description="Ce texte sera ajouté après le nom de la scène (ex: test_lumiere)",
+        default="config" 
+    )
+    
     export_format: bpy.props.EnumProperty(
         name="Format",
         description="Choisissez le format des images",
@@ -25,6 +31,19 @@ class ColorStudioSettings(bpy.types.PropertyGroup):
             ('JPEG', "LDR (JPEG)", "Basse qualité 8-bit pour des tests rapides")
         ],
         default='OPEN_EXR'
+    )
+    
+    max_frames: bpy.props.EnumProperty(
+        name="Limite d'images",
+        description="Nombre d'images à rendre par lampe",
+        items=[
+            ('50', "50 images", "Test très rapide"),
+            ('100', "100 images", "Test rapide"),
+            ('150', "150 images", "Rendu intermédiaire"),
+            ('200', "200 images", "Rendu avancé"),
+            ('250', "250 images (Complet)", "Rendu final complet")
+        ],
+        default='250'
     )
 
 class COLORSTUDIO_OT_render_passes(bpy.types.Operator):
@@ -40,6 +59,7 @@ class COLORSTUDIO_OT_render_passes(bpy.types.Operator):
             self.report({'ERROR'}, "Veuillez sélectionner un dossier de sortie dans le panneau !")
             return {'CANCELLED'}
 
+       
         scene.render.image_settings.file_format = cs_settings.export_format
         
         if cs_settings.export_format == 'OPEN_EXR':
@@ -51,6 +71,7 @@ class COLORSTUDIO_OT_render_passes(bpy.types.Operator):
             file_ext = ".jpg"
             is_hdr_flag = False
 
+ 
         scene_name = scene.name
         output_dir = os.path.join(base_dir, scene_name)
         os.makedirs(output_dir, exist_ok=True)
@@ -60,6 +81,15 @@ class COLORSTUDIO_OT_render_passes(bpy.types.Operator):
         if not lights:
             self.report({'ERROR'}, "Aucune lampe n'a été trouvée dans la scène !")
             return {'CANCELLED'}
+
+      
+        start_frame = scene.frame_start
+        limite_choisie = int(cs_settings.max_frames)
+        end_frame = min(start_frame + limite_choisie - 1, scene.frame_end)
+        total_frames = (end_frame - start_frame) + 1
+
+        render_file_path = f"{base_dir}/render_{scene_name}_final.jpg".replace('\\', '/')
+
 
         json_data = {
             "lights": [],
@@ -77,9 +107,10 @@ class COLORSTUDIO_OT_render_passes(bpy.types.Operator):
                     "luminance": { "type": "GAMMA", "gamma": 1.2 }
                 }
             ],
-            "renderFile": f"./outputs/render_{scene_name}_final.jpg"
+            "renderFile": render_file_path
         }
 
+     
         for current_light in lights:
             for l in lights:
                 l.hide_render = True
@@ -88,13 +119,15 @@ class COLORSTUDIO_OT_render_passes(bpy.types.Operator):
 
             light_color = current_light.data.color
             
+            chemin_image_json = f"{output_dir}/{current_light.name}_".replace('\\', '/')
+            
             light_entry = {
                 "name": current_light.name,
                 "inputFile": {
-                    "path": f"data/images/{scene_name}/{current_light.name}_",
+                    "path": chemin_image_json, 
                     "ext": file_ext, 
                     "min": 0,
-                    "max": (scene.frame_end - scene.frame_start) + 1,
+                    "max": total_frames,
                     "digit": 4,
                     "isHDR": is_hdr_flag 
                 },
@@ -108,7 +141,7 @@ class COLORSTUDIO_OT_render_passes(bpy.types.Operator):
             }
             json_data["lights"].append(light_entry)
 
-            for img_index, frame in enumerate(range(scene.frame_start, scene.frame_end + 1)):
+            for img_index, frame in enumerate(range(start_frame, end_frame + 1)):
                 scene.frame_set(frame)
 
                 filename = f"{current_light.name}_{img_index:04d}{file_ext}"
@@ -119,11 +152,18 @@ class COLORSTUDIO_OT_render_passes(bpy.types.Operator):
         for l in lights:
             l.hide_render = False
 
-        json_filepath = os.path.join(base_dir, f"{scene_name}_config.json")
+
+        suffixe = cs_settings.json_filename
+        nom_fichier = f"{scene_name}_{suffixe}"
+        if not nom_fichier.endswith('.json'):
+            nom_fichier += '.json'
+            
+        json_filepath = os.path.join(base_dir, nom_fichier).replace('\\', '/')
+        
         with open(json_filepath, 'w', encoding='utf-8') as json_file:
             json.dump(json_data, json_file, indent=4)
 
-        self.report({'INFO'}, f"Génération terminée ! JSON créé : {scene_name}_config.json")
+        self.report({'INFO'}, f"Génération terminée ! {total_frames} images/lampe. JSON créé : {nom_fichier}")
         return {'FINISHED'}
 
 class COLORSTUDIO_PT_panel(bpy.types.Panel):
@@ -138,7 +178,9 @@ class COLORSTUDIO_PT_panel(bpy.types.Panel):
         cs_settings = context.scene.colorstudio_settings
 
         layout.prop(cs_settings, "output_directory")
+        layout.prop(cs_settings, "json_filename")
         layout.prop(cs_settings, "export_format") 
+        layout.prop(cs_settings, "max_frames")
         
         layout.separator()
         

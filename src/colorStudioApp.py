@@ -28,7 +28,7 @@ import utils.colorStudioUtils as colorStudioUtils
 import views.colorStudioUIBuilder as colorStudioUIBuilder
 
 # ----------------------------------------------------------------------------------		
-print("ColorStudio - Rémi Cozot - 2019")
+print("ColorStudio - Charlotte Germe Luc Telliez Chloé Faillie - 2026")
 print("-------------------------------")
 screenX, screenY = colorStudioWidget.getScreenSize()
 print("screen resolution: ",screenX,"x",screenY)

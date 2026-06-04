@@ -16,6 +16,7 @@ import math
 import numpy as np
 import skimage
 import json
+import cv2
 
 # ----------------------------------------------------------------------------------
 # Class(es)
@@ -28,8 +29,7 @@ class Images:
     """
     set of images (supports both LDR and HDR formats)
     """
-    def __init__(self,pathImage,baseImageName,extImageName,nbImage,nbDigit,load=True, scale=0.5, isHDR=False):
-
+    def __init__(self,pathImage,baseImageName,extImageName,nbImage,nbDigit,load=True, scale=0.5, isHDR=False, target_shape=None):
         # path to images data
         self._pathImage = pathImage
         self._baseImageName = baseImageName
@@ -41,20 +41,27 @@ class Images:
         # list of images
         self._images = []
 
-        if load:  self.loadImages(scale)
+        if load:  self.loadImages(scale, target_shape)
 
-    def loadImages(self, scale=0.5):
+    def loadImages(self, scale=0.5, target_shape=None):
         progress_total = max(1, self._nbImage - 1)
 
         for i in range(self._nbImage):
             printProgressBar(i, progress_total, prefix = '', suffix = '', decimals = 1, length = 50, fill = '█')
 
-            # create formated filename
             iStr = str(i).zfill(self._nbDigit)
             name = self._pathImage+self._baseImageName+iStr+self._extImageName
 
-            # load image (loadImage handles both LDR and HDR)
             img = loadImage(name, scale)
+
+            if target_shape is not None and img.shape != target_shape:
+                img = skimage.transform.resize(
+                    img,
+                    target_shape,
+                    preserve_range=True,
+                    anti_aliasing=True,
+                )
+            # -----------------------------------
 
             self._images.append(img)
 
@@ -112,34 +119,24 @@ class Light:
 		self._needUpdate = True
 	
 	def setImageIdx(self,idx):
+		# Ensure index is within valid range
+		if self._ImagesArray and self._ImagesArray._images:
+			max_idx = len(self._ImagesArray._images) - 1
+			idx = min(max(idx, 0), max_idx)
 		self._imageIdx = idx
 		self._needUpdate = True
 	
 	def render(self):
-	
-		if self._firstUpdate or self._needUpdate :
-
-            # get current active image
+		if self._firstUpdate or self._needUpdate:
 			img = self._ImagesArray._images[self._imageIdx]
 
-            # new image
-			imgOut = np.zeros(img.shape)
-			
-			# color filter	
-			imgOut[:,:,0]= img[:,:,0]*self._npColorRGB[0]
-			imgOut[:,:,1]= img[:,:,1]*self._npColorRGB[1]
-			imgOut[:,:,2]= img[:,:,2]*self._npColorRGB[2]
-		
-			# exposure
-			imgOut =imgOut*math.pow(2,self._exposure)
-	
+			imgOut = img * self._npColorRGB * math.pow(2, self._exposure)
+
 			self._currentImage = imgOut
 			
 			self._firstUpdate = False
 			self._needUpdate = False
 		else:
-			
-            # no change, just return current image
 			imgOut = self._currentImage
 		
 		return imgOut
@@ -183,15 +180,6 @@ class Scene:
         # render all lights
         for light in self._lights:
             lightImg = light.render()
-
-            # Keep mixed-size image sets renderable by resizing to the scene canvas.
-            if lightImg.shape != imgOut.shape:
-                lightImg = skimage.transform.resize(
-                    lightImg,
-                    imgOut.shape,
-                    preserve_range=True,
-                    anti_aliasing=True,
-                )
 
             imgOut = imgOut + lightImg
 
@@ -249,16 +237,25 @@ class Scene:
                 filenameLight.update({imagesFile: [light]})
 
         # rendered-image files management
+        target_shape = None 
+        
         for k in filenameLight.keys():
             lights = filenameLight[k]
             firstLight = lights[0]
+            
             imgs = Images(
                 firstLight._ImagesArray._pathImage,
                 firstLight._ImagesArray._baseImageName,
                 firstLight._ImagesArray._extImageName,
                 firstLight._ImagesArray._nbImage,
                 firstLight._ImagesArray._nbDigit,
-                load=True, scale=scale, isHDR=firstLight._ImagesArray.isHDR())
+                load=True, 
+                scale=scale, 
+                isHDR=firstLight._ImagesArray.isHDR(),
+                target_shape=target_shape) 
+
+            if target_shape is None and len(imgs._images) > 0:
+                target_shape = imgs._images[0].shape
 
             for li in lights:
                 li.setImagesArray(imgs)
@@ -290,42 +287,35 @@ class Saturation(PostProcess):
 
     def setGammaSaturation(self,vibrance): self._gammaSaturation = vibrance
 
-    def postProcess(self,img):
-        if self._linearSaturation!=0: 
-            # linearSat to u in [-1,1]
-            u = self._linearSaturation/100
-            # convert to hsv
-            imgHSV = skimage.color.rgb2hsv(img)
-            satChannel = imgHSV[:,:,1]
-            one = np.ones(satChannel.shape)
-            if u > 0.0 :    new_satChannel = (1-u)*satChannel+ u*self._saturationRange*one
-            else:           new_satChannel = (1+u)*satChannel 
-            imgHSV[:,:,1] = new_satChannel[:,:]
-            # back to rgb
-            img = skimage.color.hsv2rgb(imgHSV)
+    def postProcess(self, img):
+            if self._linearSaturation == 0 and self._gammaSaturation == 0:
+                return img
 
-        if self._gammaSaturation != 0 :
-            # convert to hsv
-            imgHSV = skimage.color.rgb2hsv(img)
-            satChannel = imgHSV[:,:,1]
-            if   self._gammaSaturation > 0.0 :
-                # gamma value
-                gamma =1+(self._gammaSaturation/25)
-                # DEBUG
-                print("Saturation: S^(1/gamma) << gamma=",gamma)
-                new_satChannel = np.power(satChannel, 1/gamma)
-            elif self._gammaSaturation < 0.0 :  
-                # gamma value
-                gamma =1+(-self._gammaSaturation/25)
-                # DEBUG
-                print("Saturation: S^(gamma) << gamma=",gamma)
-                new_satChannel = np.power(satChannel, gamma)
-            imgHSV[:,:,1] = new_satChannel[:,:]
-            # back to rgb
-            img = skimage.color.hsv2rgb(imgHSV)
-        imgOut = img
+            img_f32 = img.astype(np.float32)
 
-        return imgOut
+            imgHSV = cv2.cvtColor(img_f32, cv2.COLOR_RGB2HSV)
+            satChannel = imgHSV[:, :, 1]
+
+            if self._linearSaturation != 0:
+                u = self._linearSaturation / 100.0
+                if u > 0.0:
+                    satChannel = (1 - u) * satChannel + u * self._saturationRange
+                else:
+                    satChannel = (1 + u) * satChannel
+
+            if self._gammaSaturation != 0:
+                if self._gammaSaturation > 0.0:
+                    gamma = 1 + (self._gammaSaturation / 25.0)
+                    satChannel = np.power(satChannel, 1 / gamma)
+                elif self._gammaSaturation < 0.0:
+                    gamma = 1 + (-self._gammaSaturation / 25.0)
+                    satChannel = np.power(satChannel, gamma)
+
+            imgHSV[:, :, 1] = np.clip(satChannel, 0.0, 1.0)
+
+            imgOut = cv2.cvtColor(imgHSV, cv2.COLOR_HSV2RGB)
+
+            return imgOut.astype(img.dtype)
 # ----------------------------------------------------------------------------------
 #  POST PROCESS : AE_YMEAN - Automatic Exposure Ymean-> Ytarget
 # ----------------------------------------------------------------------------------

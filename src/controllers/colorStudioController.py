@@ -68,7 +68,14 @@ class CSLightController(CSController):
             w._update(img)
 
     def on_color_requested(self):
-        self._colorWheelController._controlledWidget.setWindowTitle("Color Wheel::"+self._scene._name)
+        if self._colorWheelController is None:
+            return
+
+        if hasattr(self._colorWheelController, "_controlledWidget") and self._colorWheelController._controlledWidget is not None:
+            self._colorWheelController._controlledWidget.setWindowTitle(
+                "Color Wheel::" + getattr(self._scene, "_name", "Scene")
+            )
+
         self._colorWheelController._scene = self._scene
 # ----------------------------------------------------------------------------------
 class CSAEController(CSController):
