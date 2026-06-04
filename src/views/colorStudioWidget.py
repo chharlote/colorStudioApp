@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 Color Studio — Widget Module (Redesigned UI — 2026)
+Theme-aware version : chaque widget sensible au thème est connecté
+au signal ThemeManager.instance().theme_changed.
 """
 
 import sys
@@ -25,6 +27,8 @@ from PyQt6.QtOpenGLWidgets import QOpenGLWidget
 import models.colorStudioModel as colorStudioModel
 import utils.colorStudioUtils as colorStudioUtils
 import views.colorStudioUIBuilder as colorStudioUIBuilder
+from utils.colorStudioTheme import ThemeManager
+
 
 # ─────────────────────────────────────────────
 # Screen size helper
@@ -193,7 +197,7 @@ class MyWidgetGL(QModernGLWidget):
 
 
 # ─────────────────────────────────────────────
-# Collapsible Section  (redesigned)
+# Collapsible Section  (theme-aware)
 # ─────────────────────────────────────────────
 class CSQCollapsibleSection(QWidget):
 
@@ -213,16 +217,10 @@ class CSQCollapsibleSection(QWidget):
         self._toggleButton.clicked.connect(self._on_toggle)
 
         # ── Content area ──────────────────────
+        # L'objectName "sectionContent" est stylisé dans le QSS selon le thème.
+        # On ne pose PAS de setStyleSheet inline ici pour laisser le QSS piloter.
         self._content = QWidget()
         self._content.setObjectName("sectionContent")
-        self._content.setStyleSheet("""
-            QWidget#sectionContent {
-                background-color: #2e2e2e;
-                border-left: 2px solid #444444;
-                border-bottom-left-radius: 4px;
-                border-bottom-right-radius: 4px;
-            }
-        """)
         self._contentLayout = QVBoxLayout(self._content)
         self._contentLayout.setContentsMargins(12, 8, 8, 10)
         self._contentLayout.setSpacing(8)
@@ -250,7 +248,7 @@ class CSQCollapsibleSection(QWidget):
 
 
 # ─────────────────────────────────────────────
-# Light Control Layout  (redesigned)
+# Light Control Layout  (theme-aware)
 # ─────────────────────────────────────────────
 class CSQLightControlLayout(QVBoxLayout):
 
@@ -262,11 +260,11 @@ class CSQLightControlLayout(QVBoxLayout):
                  stepE=0.2, maxE=5, lightPosIdx=50,
                  light_name=None, light_color=None):
         super().__init__()
-        self._controller   = controller
-        self._step         = stepE
-        self._max          = maxE
-        self._exposure     = 0.0
-        self._light_color  = light_color if light_color is not None else (1.0, 1.0, 1.0)
+        self._controller  = controller
+        self._step        = stepE
+        self._max         = maxE
+        self._exposure    = 0.0
+        self._light_color = light_color if light_color is not None else (1.0, 1.0, 1.0)
         name = light_name or "Light"
 
         self.setSpacing(10)
@@ -280,7 +278,7 @@ class CSQLightControlLayout(QVBoxLayout):
         expLbl.setFixedWidth(66)
         expLbl.setStyleSheet("color: #777777; font-size: 11px; font-weight: 600;")
 
-        self._deButton = QPushButton("−")   # U+2212 minus sign — visually cleaner
+        self._deButton = QPushButton("−")
         self._deButton.setFixedSize(30, 30)
         self._deButton.setToolTip(f"{name}: Decrease exposure")
         self._deButton.setStyleSheet(self._btn_style())
@@ -289,18 +287,6 @@ class CSQLightControlLayout(QVBoxLayout):
         self._exposureValueLabel.setFixedWidth(54)
         self._exposureValueLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._exposureValueLabel.setObjectName("exposureValue")
-        self._exposureValueLabel.setStyleSheet("""
-            QLabel {
-                background-color: #222222;
-                color: #aaaaaa;
-                border: 1px solid #1e1e1e;
-                border-radius: 3px;
-                font-family: 'Consolas', 'Fira Code', monospace;
-                font-size: 12px;
-                font-weight: 600;
-                padding: 2px 0;
-            }
-        """)
 
         self._ieButton = QPushButton("+")
         self._ieButton.setFixedSize(30, 30)
@@ -328,11 +314,9 @@ class CSQLightControlLayout(QVBoxLayout):
         self._updateColorButton(self._light_color)
 
         self._colorHexLabel = QLabel(self._rgb_to_hex(self._light_color))
-        self._colorHexLabel.setStyleSheet("""
-            color: #666666;
-            font-family: 'Consolas', monospace;
-            font-size: 11px;
-        """)
+        self._colorHexLabel.setStyleSheet(
+            "color: #666666; font-family: 'Consolas', monospace; font-size: 11px;"
+        )
 
         colorRow.addWidget(colorLbl)
         colorRow.addWidget(self._ccButton)
@@ -364,10 +348,9 @@ class CSQLightControlLayout(QVBoxLayout):
         self.addLayout(posRow)
 
         # ── Divider ───────────────────────────
-        line = QFrame()
-        line.setFrameShape(QFrame.Shape.HLine)
-        line.setStyleSheet("color: #2a2a4a; margin: 2px 0;")
-        self.addWidget(line)
+        self._divider = QFrame()
+        self._divider.setFrameShape(QFrame.Shape.HLine)
+        self.addWidget(self._divider)
 
         # ── Signals ───────────────────────────
         self._ieButton.clicked.connect(self.incExposure)
@@ -375,23 +358,36 @@ class CSQLightControlLayout(QVBoxLayout):
         self._ccButton.clicked.connect(self.setColor)
         self._sliderPosition.valueChanged.connect(self._onPositionChanged)
 
-    # ── Private helpers ───────────────────────
+        # ── Thème initial + connexion ──────────
+        self._apply_theme_styles()
+        ThemeManager.instance().theme_changed.connect(self._apply_theme_styles)
 
+    # ── Styles sensibles au thème ─────────────
+    def _apply_theme_styles(self, _theme_name: str = ''):
+        c = ThemeManager.instance().colors()
+        self._exposureValueLabel.setStyleSheet(f"""
+            QLabel {{
+                background-color: {c['exp_bg']};
+                color: {c['exp_color']};
+                border: 1px solid {c['exp_border']};
+                border-radius: 3px;
+                font-family: 'Consolas', 'Fira Code', monospace;
+                font-size: 12px;
+                font-weight: 600;
+                padding: 2px 0;
+            }}
+        """)
+        self._divider.setStyleSheet(f"color: {c['divider']}; margin: 2px 0;")
+
+    # ── Helpers fixes ─────────────────────────
     def _btn_style(self, accent=False):
         return """
             QPushButton {
-                background-color: #333333;
-                color: #999999;
-                border: 1px solid #1e1e1e;
-                border-radius: 4px;
-                font-size: 16px;
-                font-weight: 700;
+                background-color: #333333; color: #999999;
+                border: 1px solid #1e1e1e; border-radius: 4px;
+                font-size: 16px; font-weight: 700;
             }
-            QPushButton:hover {
-                background-color: #444444;
-                color: #cccccc;
-                border-color: #555555;
-            }
+            QPushButton:hover { background-color: #444444; color: #cccccc; border-color: #555555; }
             QPushButton:pressed { background-color: #505050; }
         """
 
@@ -409,7 +405,6 @@ class CSQLightControlLayout(QVBoxLayout):
             r = int(max(0, min(1, rgb[0])) * 255)
             g = int(max(0, min(1, rgb[1])) * 255)
             b = int(max(0, min(1, rgb[2])) * 255)
-            # Pick a readable border color (complementary brightness)
             lum = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]
             border = "#ffffff" if lum < 0.5 else "#333333"
             self._ccButton.setStyleSheet(f"""
@@ -418,16 +413,12 @@ class CSQLightControlLayout(QVBoxLayout):
                     border: 2px solid {border};
                     border-radius: 5px;
                 }}
-                QPushButton:hover {{
-                    border: 2px solid #a89cf7;
-                    border-radius: 5px;
-                }}
+                QPushButton:hover {{ border: 2px solid #a89cf7; border-radius: 5px; }}
             """)
         except Exception:
             pass
 
-    # ── Public API ────────────────────────────
-
+    # ── API publique ──────────────────────────
     def setLightColor(self, rgb):
         self._light_color = rgb
         self._updateColorButton(rgb)
@@ -460,7 +451,7 @@ class CSQLightControlLayout(QVBoxLayout):
 
 
 # ─────────────────────────────────────────────
-# Automatic Exposure widget  (redesigned)
+# Automatic Exposure widget  (theme-aware)
 # ─────────────────────────────────────────────
 class CSQAEControlLayout(QWidget):
 
@@ -476,57 +467,28 @@ class CSQAEControlLayout(QWidget):
         self._exposureOFF = 0.0
         self._on_off      = True
 
-        self.setStyleSheet("""
-            QWidget {
-                background-color: #303030;
-                border: 1px solid #1e1e1e;
-                border-radius: 5px;
-            }
-        """)
-
         layout = QHBoxLayout(self)
         layout.setContentsMargins(10, 8, 10, 8)
         layout.setSpacing(8)
 
-        # ON/OFF toggle (text-based, clean)
         self._aeButton = QPushButton("AE  ON")
         self._aeButton.setCheckable(True)
         self._aeButton.setChecked(True)
         self._aeButton.setFixedHeight(28)
         self._aeButton.setFixedWidth(70)
         self._aeButton.setToolTip("Toggle automatic exposure")
-        self._aeButton.setStyleSheet(self._toggle_style(True))
 
         self._deButton = QPushButton("EV −")
         self._deButton.setFixedHeight(28)
         self._deButton.setToolTip("Decrease global exposure")
-        self._deButton.setStyleSheet("""
-            QPushButton {
-                background: #333333; color: #999999;
-                border: 1px solid #1e1e1e; border-radius: 4px;
-                font-weight: 600; font-size: 12px; padding: 0 10px;
-            }
-            QPushButton:hover { background: #444444; color: #cccccc; }
-            QPushButton:pressed { background: #505050; }
-        """)
 
         self._ieButton = QPushButton("EV +")
         self._ieButton.setFixedHeight(28)
         self._ieButton.setToolTip("Increase global exposure")
-        self._ieButton.setStyleSheet(self._deButton.styleSheet())
 
         self._exposureValueLabel = QLabel("+0.00")
         self._exposureValueLabel.setFixedWidth(48)
         self._exposureValueLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._exposureValueLabel.setStyleSheet("""
-            background-color: #0f0f22;
-            color: #7cd4f7;
-            border: 1px solid #2a4a6a;
-            border-radius: 4px;
-            font-family: 'Consolas', monospace;
-            font-size: 12px; font-weight: 600;
-            padding: 2px 0;
-        """)
 
         layout.addWidget(self._aeButton)
         layout.addWidget(self._deButton)
@@ -541,20 +503,44 @@ class CSQAEControlLayout(QWidget):
         self._ieButton.clicked.connect(self.incExposure)
         self._deButton.clicked.connect(self.decExposure)
 
-    def _toggle_style(self, on):
+        # ── Thème initial + connexion ──────────
+        self._apply_theme_styles()
+        ThemeManager.instance().theme_changed.connect(self._apply_theme_styles)
+
+    def _apply_theme_styles(self, _theme_name: str = ''):
+        c = ThemeManager.instance().colors()
+        # Carte globale
+        self.setStyleSheet(f"""
+            QWidget {{
+                background-color: {c['bg_card']};
+                border: 1px solid {c['border_input']};
+                border-radius: 5px;
+            }}
+        """)
+        # Label valeur EV (teinte caractéristique du thème)
+        self._exposureValueLabel.setStyleSheet(f"""
+            background-color: {c['ae_bg']};
+            color: {c['ae_color']};
+            border: 1px solid {c['ae_border']};
+            border-radius: 4px;
+            font-family: 'Consolas', monospace;
+            font-size: 12px; font-weight: 600;
+            padding: 2px 0;
+        """)
+        # Bouton toggle AE
+        self._aeButton.setStyleSheet(self._toggle_style(self._on_off))
+
+    def _toggle_style(self, on: bool) -> str:
+        c = ThemeManager.instance().colors()
         if on:
-            return """
-                QPushButton { background:#333333; color:#aaaaaa;
-                  border:1px solid #1e1e1e; border-radius:4px;
-                  font-weight:700; font-size:11px; }
-                QPushButton:hover { background:#444444; color:#cccccc; }
-            """
-        return """
-            QPushButton { background:#2a2a2a; color:#777777;
-              border:1px solid #1a1a1a; border-radius:4px;
-              font-weight:700; font-size:11px; }
-            QPushButton:hover { background:#333333; color:#999999; }
-        """
+            return (f"QPushButton {{ background:{c['ae_btn_on_bg']}; color:{c['ae_btn_on_color']};"
+                    f"  border:1px solid {c['ae_btn_on_border']}; border-radius:4px;"
+                    f"  font-weight:700; font-size:11px; }}"
+                    f"QPushButton:hover {{ background:{c['border_mid']}; }}")
+        return (f"QPushButton {{ background:{c['ae_btn_off_bg']}; color:{c['ae_btn_off_color']};"
+                f"  border:1px solid {c['ae_btn_off_border']}; border-radius:4px;"
+                f"  font-weight:700; font-size:11px; }}"
+                f"QPushButton:hover {{ background:{c['bg_card']}; }}")
 
     def switch_on_off(self):
         self._on_off = not self._on_off
@@ -585,7 +571,7 @@ class CSQAEControlLayout(QWidget):
 
 
 # ─────────────────────────────────────────────
-# Render display widget  (unchanged logic)
+# Render display widget  (theme-aware)
 # ─────────────────────────────────────────────
 class CSDisplayWidget(QWidget):
 
@@ -597,7 +583,6 @@ class CSDisplayWidget(QWidget):
         self._label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._label.setScaledContents(False)
         self._label.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
-        self._label.setStyleSheet("background: #1e1e1e;")
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -607,8 +592,15 @@ class CSDisplayWidget(QWidget):
 
         self._pixmap_original = None
 
-        # Subtle inner shadow effect
-        self.setStyleSheet("background: #1e1e1e;")
+        # ── Thème initial + connexion ──────────
+        self._apply_theme_styles()
+        ThemeManager.instance().theme_changed.connect(self._apply_theme_styles)
+
+    def _apply_theme_styles(self, _theme_name: str = ''):
+        c = ThemeManager.instance().colors()
+        bg = c['bg_render']
+        self._label.setStyleSheet(f"background: {bg};")
+        self.setStyleSheet(f"background: {bg};")
 
     def _update(self, imgDouble):
         try:
@@ -674,14 +666,11 @@ class CSDisplayWidget(QWidget):
 
 
 # ─────────────────────────────────────────────
-# Color Wheel widget  (redesigned wrapper)
+# Color Wheel widget  (theme-aware)
 # ─────────────────────────────────────────────
 class CSDisplayColorWheel(QWidget):
     """
-    Roue chromatique flottante.
-    - S'ouvre près du bouton couleur cliqué.
-    - Se ferme si on reclique le même bouton, ou si on clique en dehors.
-    - Ne bloque PAS les interactions avec le reste de l'application.
+    Roue chromatique flottante, sensible au thème.
     """
 
     color_changed = QtCore.pyqtSignal(object)
@@ -689,17 +678,16 @@ class CSDisplayColorWheel(QWidget):
     POPUP_SIZE = 260
 
     def __init__(self, controller, width=260):
-        # Tool window = flottant, sans bloquer, sans barre de titre
         super().__init__(
             None,
             Qt.WindowType.Tool | Qt.WindowType.FramelessWindowHint
         )
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating)  # ne vole pas le focus
+        self.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating)
         self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True)
 
-        self._controller      = controller
-        self._source_btn      = None   # bouton qui a ouvert la roue
+        self._controller       = controller
+        self._source_btn       = None
         self._app_event_filter = _WheelOutsideFilter(self)
 
         self._width  = self.POPUP_SIZE
@@ -713,17 +701,10 @@ class CSDisplayColorWheel(QWidget):
         self._pixmap = QPixmap.fromImage(qImg)
 
         # Container circulaire
-        outer = QWidget(self)
-        outer.setGeometry(10, 10, self._width, self._height)
-        outer.setStyleSheet("""
-            QWidget {
-                background-color: #2a2a2a;
-                border: 1px solid #444444;
-                border-radius: 130px;
-            }
-        """)
+        self._outer = QWidget(self)
+        self._outer.setGeometry(10, 10, self._width, self._height)
 
-        self._label = QLabel(outer)
+        self._label = QLabel(self._outer)
         self._label.setGeometry(0, 0, self._width, self._height)
         self._label.setPixmap(self._pixmap)
         self._label.setScaledContents(True)
@@ -731,66 +712,69 @@ class CSDisplayColorWheel(QWidget):
 
         # Preview couleur au centre
         ps = 36
-        self._previewLabel = QLabel(outer)
+        self._previewLabel = QLabel(self._outer)
         self._previewLabel.setGeometry(
             self._width // 2 - ps // 2,
             self._height // 2 - ps // 2,
             ps, ps
         )
-        self._previewLabel.setStyleSheet("""
-            background-color: white;
-            border: 2px solid rgba(255,255,255,0.6);
-            border-radius: 18px;
-        """)
+        self._previewLabel.setStyleSheet(
+            "background-color: white; border: 2px solid rgba(255,255,255,0.6);"
+            " border-radius: 18px;"
+        )
         self._previewLabel.setToolTip("Couleur active")
 
-        # Bouton fermer discret
-        closeBtn = QPushButton("✕", outer)
-        closeBtn.setGeometry(self._width - 28, 6, 22, 22)
-        closeBtn.setStyleSheet("""
-            QPushButton {
-                background: rgba(30,30,30,0.85);
-                color: #777777;
-                border: 1px solid #444444;
-                border-radius: 11px;
-                font-size: 10px;
-                font-weight: 700;
-            }
-            QPushButton:hover { background: #555555; color: #eeeeee; }
-        """)
-        closeBtn.clicked.connect(self.close)
+        # Bouton fermer
+        self._closeBtn = QPushButton("✕", self._outer)
+        self._closeBtn.setGeometry(self._width - 28, 6, 22, 22)
+        self._closeBtn.clicked.connect(self.close)
 
         self.setMouseTracking(True)
         self.setCursor(Qt.CursorShape.CrossCursor)
-        self._outer = outer
+
+        # ── Thème initial + connexion ──────────
+        self._apply_theme_styles()
+        ThemeManager.instance().theme_changed.connect(self._apply_theme_styles)
+
+    def _apply_theme_styles(self, _theme_name: str = ''):
+        c = ThemeManager.instance().colors()
+        self._outer.setStyleSheet(f"""
+            QWidget {{
+                background-color: {c['wheel_bg']};
+                border: 1px solid {c['wheel_border']};
+                border-radius: 130px;
+            }}
+        """)
+        self._closeBtn.setStyleSheet(f"""
+            QPushButton {{
+                background: {c['wheel_close_bg']};
+                color: {c['wheel_close_color']};
+                border: 1px solid {c['wheel_close_border']};
+                border-radius: 11px;
+                font-size: 10px; font-weight: 700;
+            }}
+            QPushButton:hover {{
+                background: {c['border_strong']};
+                color: {c['text_primary']};
+            }}
+        """)
 
     # ------------------------------------------------------------------
-    # Ouvrir / fermer (toggle)
-    # ------------------------------------------------------------------
     def toggleNearWidget(self, source_btn):
-        """
-        Si déjà visible et déclenché par le même bouton -> ferme.
-        Sinon -> place et ouvre.
-        """
         if self.isVisible() and self._source_btn is source_btn:
             self.close()
             return
-
         self._source_btn = source_btn
         self._placeNearWidget(source_btn)
         self.show()
         self.raise_()
-
-        # Installe le filtre global pour détecter les clics en dehors
         QApplication.instance().installEventFilter(self._app_event_filter)
 
     def _placeNearWidget(self, source_btn):
         global_pos = source_btn.mapToGlobal(QtCore.QPoint(0, 0))
         pw, ph = self.width(), self.height()
-
         x = global_pos.x() - pw - 8
         y = global_pos.y() + source_btn.height() // 2 - ph // 2
-
         screen = QApplication.primaryScreen().availableGeometry()
         if x < screen.left():
             x = global_pos.x() + source_btn.width() + 8
@@ -798,7 +782,6 @@ class CSDisplayColorWheel(QWidget):
             y = screen.top() + 4
         if y + ph > screen.bottom():
             y = screen.bottom() - ph - 4
-
         self.move(x, y)
 
     def close(self):
@@ -806,9 +789,6 @@ class CSDisplayColorWheel(QWidget):
         self._source_btn = None
         super().close()
 
-    # ------------------------------------------------------------------
-    # Sélection de couleur
-    # ------------------------------------------------------------------
     def mousePressEvent(self, e):
         self._pickColor(e)
 
@@ -835,14 +815,13 @@ class CSDisplayColorWheel(QWidget):
                 hsv[0, 0] = [0.0, 0.0, 0.01]
 
             rgb = skimage.color.hsv2rgb(hsv)[0, 0]
-            ri  = int(max(0, min(1, rgb[0])) * 255)
-            gi  = int(max(0, min(1, rgb[1])) * 255)
-            bi  = int(max(0, min(1, rgb[2])) * 255)
-            self._previewLabel.setStyleSheet(f"""
-                background-color: rgb({ri},{gi},{bi});
-                border: 2px solid rgba(255,255,255,0.7);
-                border-radius: 18px;
-            """)
+            ri = int(max(0, min(1, rgb[0])) * 255)
+            gi = int(max(0, min(1, rgb[1])) * 255)
+            bi = int(max(0, min(1, rgb[2])) * 255)
+            self._previewLabel.setStyleSheet(
+                f"background-color: rgb({ri},{gi},{bi});"
+                " border: 2px solid rgba(255,255,255,0.7); border-radius: 18px;"
+            )
             self.color_changed.emit(rgb)
 
 
@@ -856,76 +835,60 @@ class _WheelOutsideFilter(QtCore.QObject):
 
     def eventFilter(self, obj, event):
         if event.type() == QtCore.QEvent.Type.MouseButtonPress:
-            # Si le clic n'est pas sur la roue ni sur son bouton source
-            wheel_rect  = QtCore.QRect(self._wheel.mapToGlobal(QtCore.QPoint(0, 0)),
-                                       self._wheel.size())
-            global_pos  = event.globalPosition().toPoint()
-
+            wheel_rect = QtCore.QRect(
+                self._wheel.mapToGlobal(QtCore.QPoint(0, 0)), self._wheel.size()
+            )
+            global_pos = event.globalPosition().toPoint()
             inside_wheel = wheel_rect.contains(global_pos)
-
             inside_btn = False
             if self._wheel._source_btn is not None:
                 btn = self._wheel._source_btn
                 btn_rect = QtCore.QRect(btn.mapToGlobal(QtCore.QPoint(0, 0)), btn.size())
                 inside_btn = btn_rect.contains(global_pos)
-
             if not inside_wheel and not inside_btn:
                 self._wheel.close()
-
-        return False   # ne bloque pas l'événement
+        return False
 
 
 # ─────────────────────────────────────────────
-# Controls panel (scroll wrapper)
+# Controls panel (theme-aware scroll wrapper)
 # ─────────────────────────────────────────────
 class CSDisplayControls(QWidget):
 
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Controls")
-        self.setStyleSheet("background-color: #2b2b2b;")
 
         mainLayout = QVBoxLayout(self)
         mainLayout.setContentsMargins(0, 0, 0, 0)
         mainLayout.setSpacing(0)
 
         # ── Title bar ─────────────────────────
-        titleBar = QWidget()
-        titleBar.setFixedHeight(42)
-        titleBar.setStyleSheet("""
-            QWidget {
-                background-color: #222222;
-                border-bottom: 1px solid #1a1a1a;
-            }
-        """)
-        titleLayout = QHBoxLayout(titleBar)
+        # objectName = "controlsTitleBar" → stylisé par le QSS thème
+        self._titleBar = QWidget()
+        self._titleBar.setObjectName("controlsTitleBar")
+        self._titleBar.setFixedHeight(42)
+        titleLayout = QHBoxLayout(self._titleBar)
         titleLayout.setContentsMargins(14, 0, 14, 0)
 
-        dot1 = QLabel("●")
-        dot1.setStyleSheet("color: #888888; font-size: 8px; background: transparent; border:none;")
-        dot2 = QLabel("●")
-        dot2.setStyleSheet("color: #888888; font-size: 8px; background: transparent; border:none;")
-        dot3 = QLabel("●")
-        dot3.setStyleSheet("color: #888888; font-size: 8px; background: transparent; border:none;")
+        for ch in ("●", "●", "●"):
+            dot = QLabel(ch)
+            dot.setStyleSheet(
+                "color: #888888; font-size: 8px; background: transparent; border:none;"
+            )
+            titleLayout.addWidget(dot)
+
+        titleLayout.addSpacing(10)
 
         panelTitle = QLabel("LIGHTS & CONTROLS")
-        panelTitle.setStyleSheet("""
-            color: #555555;
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 2px;
-            background: transparent;
-            border: none;
-        """)
-
-        titleLayout.addWidget(dot1)
-        titleLayout.addWidget(dot2)
-        titleLayout.addWidget(dot3)
-        titleLayout.addSpacing(10)
+        panelTitle.setStyleSheet(
+            "color: #555555; font-size: 10px; font-weight: 700;"
+            " letter-spacing: 2px; background: transparent; border: none;"
+        )
+        self._panelTitleLabel = panelTitle
         titleLayout.addWidget(panelTitle)
         titleLayout.addStretch()
-
-        mainLayout.addWidget(titleBar)
+        mainLayout.addWidget(self._titleBar)
 
         # ── Scroll area ───────────────────────
         scrollArea = QScrollArea()
@@ -933,19 +896,14 @@ class CSDisplayControls(QWidget):
         scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         scrollArea.setStyleSheet("""
             QScrollArea { border: none; background-color: #2b2b2b; }
-            QScrollBar:vertical {
-                border: none; background: #222222;
-                width: 6px; border-radius: 3px;
-            }
-            QScrollBar::handle:vertical {
-                background: #555555; border-radius: 3px; min-height: 20px;
-            }
-            QScrollBar::handle:vertical:hover { background: #777777; }
-            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }
+            QScrollBar:vertical { border:none; background:#222222; width:6px; border-radius:3px; }
+            QScrollBar::handle:vertical { background:#555555; border-radius:3px; min-height:20px; }
+            QScrollBar::handle:vertical:hover { background:#777777; }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height:0; }
         """)
+        self._scrollArea = scrollArea
 
         container = QWidget()
-        container.setStyleSheet("background-color: #2b2b2b;")
         self._layout = QVBoxLayout(container)
         self._layout.setContentsMargins(8, 8, 8, 8)
         self._layout.setSpacing(4)
@@ -954,9 +912,35 @@ class CSDisplayControls(QWidget):
         mainLayout.addWidget(scrollArea)
         self.setLayout(mainLayout)
 
+        # ── Thème initial + connexion ──────────
+        self._apply_theme_styles()
+        ThemeManager.instance().theme_changed.connect(self._apply_theme_styles)
+
+    def _apply_theme_styles(self, _theme_name: str = ''):
+        c = ThemeManager.instance().colors()
+        # Le QSS couvre #controlsTitleBar background, mais les dots / title
+        # ont des couleurs inline qu'on adapte ici.
+        muted = c['text_muted']
+        dim   = c['text_dim']
+        self._panelTitleLabel.setStyleSheet(
+            f"color: {dim}; font-size: 10px; font-weight: 700;"
+            " letter-spacing: 2px; background: transparent; border: none;"
+        )
+        # ScrollArea background adaptatif
+        bg  = c['bg_primary']
+        bg2 = c['bg_secondary']
+        acc = c['accent_slider'] if 'accent_slider' in c else c['text_muted']
+        self._scrollArea.setStyleSheet(f"""
+            QScrollArea {{ border: none; background-color: {bg}; }}
+            QScrollBar:vertical {{ border:none; background:{bg2}; width:6px; border-radius:3px; }}
+            QScrollBar::handle:vertical {{ background:{acc}; border-radius:3px; min-height:20px; }}
+            QScrollBar::handle:vertical:hover {{ background:{c['text_secondary']}; }}
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{ height:0; }}
+        """)
+
 
 # ─────────────────────────────────────────────
-# Saturation Layout  (redesigned)
+# Saturation Layout  (theme-aware)
 # ─────────────────────────────────────────────
 class CSQSaturationLayout(QVBoxLayout):
 
@@ -965,14 +949,13 @@ class CSQSaturationLayout(QVBoxLayout):
 
     def __init__(self, controller, range=100):
         super().__init__()
-        self._controller        = controller
-        self._linearSaturation  = 0.0
-        self._gammaSaturation   = 0.0
-        self._range             = range
+        self._controller       = controller
+        self._linearSaturation = 0.0
+        self._gammaSaturation  = 0.0
+        self._range            = range
 
         self.setSpacing(6)
 
-        # Linear saturation
         linLbl = QLabel("Saturation")
         linLbl.setStyleSheet("color: #777777; font-size: 11px; font-weight: 600;")
         self._linearSaturationValueLabel = QLabel("+0")
@@ -1002,7 +985,6 @@ class CSQSaturationLayout(QVBoxLayout):
         self._sliderLinearSaturation.setCursor(Qt.CursorShape.PointingHandCursor)
         self.addWidget(self._sliderLinearSaturation)
 
-        # Gamma saturation
         gamLbl = QLabel("Gamma Sat.")
         gamLbl.setStyleSheet("color: #777777; font-size: 11px; font-weight: 600;")
         self._gammaSaturationValueLabel = QLabel("+0")
@@ -1028,7 +1010,6 @@ class CSQSaturationLayout(QVBoxLayout):
         self._sliderGammaSaturation.setCursor(Qt.CursorShape.PointingHandCursor)
         self.addWidget(self._sliderGammaSaturation)
 
-        # Signals
         self._sliderLinearSaturation.valueChanged.connect(self.sliderLinearSaturationValueChanged)
         self._sliderGammaSaturation.valueChanged.connect(self.sliderGammaSaturationValueChanged)
         self._resetLinearButton.clicked.connect(self.resetLinear)
