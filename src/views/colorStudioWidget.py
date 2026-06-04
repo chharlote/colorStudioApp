@@ -110,6 +110,9 @@ class HelloWorld2D:
         if type == 'line':
             self.ctx.line_width = 1.0
             self.vao.render(moderngl.LINE_STRIP, vertices=len(data) // 24)
+        if type == 'lines':
+            self.ctx.line_width = 1.5
+            self.vao.render(moderngl.LINES, vertices=len(data) // 24)
         if type == 'points':
             self.ctx.point_size = 3.0
             self.vao.render(moderngl.POINTS, vertices=len(data) // 24)
@@ -157,11 +160,17 @@ class MyWidgetGL(QModernGLWidget):
     def __init__(self, img, scene=None):
         super().__init__()
         self.VBOdata = colorStudioUtils.img2chromaVertices(img, False)
+        self._pan_tool = PanTool()
         self.setWindowTitle("3D Color")
 
     def init(self):
         self.ctx.viewport = (0, 0, self.width(), self.height())
         self.scene = HelloWorld2D(self.ctx)
+        self._axes_data = self._build_axes_data()
+        cx, cy = self._compute_centroid()
+        self._pan_tool.total_x = cx
+        self._pan_tool.total_y = cy
+        self._apply_pan()
 
     def resizeGL(self, w, h):
         if hasattr(self, 'ctx'):
@@ -170,25 +179,31 @@ class MyWidgetGL(QModernGLWidget):
     def render(self):
         self.screen.use()
         self.scene.clear()
+        self.scene.plot(self._axes_data, type='lines')
         self.scene.plot(self.VBOdata)
 
     def mousePressEvent(self, evt):
-        pan_tool.start_drag(evt.position().x() / 512, evt.position().y() / 512)
-        self.scene.pan(pan_tool.value)
+        self._pan_tool.start_drag(evt.position().x() / 512, evt.position().y() / 512)
+        self._apply_pan()
         self.update()
 
     def mouseMoveEvent(self, evt):
-        pan_tool.dragging(evt.position().x() / 512, evt.position().y() / 512)
-        self.scene.pan(pan_tool.value)
+        self._pan_tool.dragging(evt.position().x() / 512, evt.position().y() / 512)
+        self._apply_pan()
         self.update()
 
     def mouseReleaseEvent(self, evt):
-        pan_tool.stop_drag(evt.position().x() / 512, evt.position().y() / 512)
-        self.scene.pan(pan_tool.value)
+        self._pan_tool.stop_drag(evt.position().x() / 512, evt.position().y() / 512)
+        self._apply_pan()
         self.update()
 
     def _update(self, img):
         self.VBOdata = colorStudioUtils.img2chromaVertices(img, False)
+        if hasattr(self, 'scene') and hasattr(self, '_pan_tool'):
+            cx, cy = self._compute_centroid()
+            self._pan_tool.total_x = cx
+            self._pan_tool.total_y = cy
+            self._apply_pan()
         self.update()
 
     def saveImage(self, path):
