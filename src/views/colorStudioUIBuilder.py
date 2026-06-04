@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Color Studio - UI Builder (Redesigned 2026)
+Color Studio — UI Builder (Redesigned 2026 + Theme Toggle)
 """
 
 import sys
@@ -22,6 +22,7 @@ import models.colorStudioModel as colorStudioModel
 import views.colorStudioWidget as colorStudioWidget
 import controllers.colorStudioController as colorStudioController
 import utils.colorStudioUtils as colorStudioUtils
+from utils.colorStudioTheme import ThemeManager
 
 
 # ------------------------------------------------------------------
@@ -115,43 +116,29 @@ class CSUIAllBuilder(CSUIBuilder):
 
         self._sceneRoot                = lightsScene
         self._activeLightControlLayout = None
-        self._activeLightColorBtn      = None   # bouton source du dernier clic couleur
+        self._activeLightColorBtn      = None
         self._lightControllers         = []
 
-        # -------------------------------------------------------
-        # Main window
-        # -------------------------------------------------------
+        # ── Fenêtre principale ──────────────────
         self._mainWindow = QMainWindow()
         self._mainWindow.setWindowTitle("Color Studio")
         self._mainWindow.setMinimumSize(900, 600)
-        self._mainWindow.setStyleSheet("QMainWindow { background: #2b2b2b; }")
 
         self._buildMenuBar()
 
         self._statusBar = QStatusBar()
-        self._statusBar.setStyleSheet(
-            "QStatusBar { background:#222222; color:#555555;"
-            " border-top:1px solid #1a1a1a; font-size:11px; padding:0 8px; }"
-        )
         self._statusBar.showMessage("Color Studio  —  ready")
         self._mainWindow.setStatusBar(self._statusBar)
 
-        # -------------------------------------------------------
-        # Layout: left | vline | render | vline | side
-        # -------------------------------------------------------
+        # ── Layout racine ───────────────────────
         central = QWidget()
-        central.setStyleSheet("background:#2b2b2b;")
         rootLayout = QHBoxLayout(central)
         rootLayout.setContentsMargins(0, 0, 0, 0)
         rootLayout.setSpacing(0)
 
-        # -- Render widget first (needed by left panel wiring) --
-        self._renderWidget = colorStudioWidget.CSDisplayWidget(None, "Render")
-
-        # -- Popup color wheel (unique instance, partagee) --
+        self._renderWidget     = colorStudioWidget.CSDisplayWidget(None, "Render")
         self._colorWheelWidget = colorStudioWidget.CSDisplayColorWheel(None)
 
-        # -- Panels --
         leftPanel = self._buildLeftPanel(lightsScene)
         rootLayout.addWidget(leftPanel)
         rootLayout.addWidget(self._vline())
@@ -161,9 +148,7 @@ class CSUIAllBuilder(CSUIBuilder):
 
         self._mainWindow.setCentralWidget(central)
 
-        # -------------------------------------------------------
-        # Initial render
-        # -------------------------------------------------------
+        # ── Rendu initial ───────────────────────
         img = lightsScene.render()
         self._renderWidget._update(img)
         try:
@@ -178,23 +163,80 @@ class CSUIAllBuilder(CSUIBuilder):
             pass
         self._mainWindow.showMaximized()
 
+        # ── Connexion au ThemeManager ───────────
+        ThemeManager.instance().theme_changed.connect(self._onThemeChanged)
+
     # ------------------------------------------------------------------
-    # Stylesheet
+    # Stylesheet (chargement du QSS selon le thème courant)
     # ------------------------------------------------------------------
     def _applyStylesheet(self, app):
-        candidates = [
-            os.path.join(os.path.dirname(__file__), 'colorStudioStyle.qss'),
-            os.path.join(os.path.dirname(__file__), '..', 'colorStudioStyle.qss'),
-            './colorStudioStyle.qss',
-            './src/views/colorStudioStyle.qss',
+        theme_name = ThemeManager.instance().name
+        if theme_name == 'light':
+            filenames = ['colorStudioStyleLight.qss']
+        else:
+            filenames = ['colorStudioStyle.qss']
+
+        # Liste de répertoires à explorer
+        base_dirs = [
+            os.path.dirname(__file__),
+            os.path.join(os.path.dirname(__file__), '..'),
+            '.',
+            './src/views',
+            './styles',
         ]
-        for path in candidates:
-            if os.path.exists(path):
-                with open(path, 'r', encoding='utf-8') as f:
-                    app.setStyleSheet(f.read())
-                print(f"ColorStudio: stylesheet loaded from {path}")
-                return
-        print("ColorStudio: no QSS found — using default Qt style")
+
+        for fname in filenames:
+            for d in base_dirs:
+                path = os.path.join(d, fname)
+                if os.path.exists(path):
+                    with open(path, 'r', encoding='utf-8') as f:
+                        app.setStyleSheet(f.read())
+                    print(f"ColorStudio: stylesheet '{fname}' chargé depuis {path}")
+                    return
+
+        print(f"ColorStudio: aucun QSS trouvé pour le thème '{theme_name}' — style Qt par défaut")
+
+    # ------------------------------------------------------------------
+    # Toggle thème
+    # ------------------------------------------------------------------
+    def _onThemeToggle(self):
+        """Bascule entre sombre et clair."""
+        ThemeManager.instance().toggle()
+
+    def _onThemeChanged(self, theme_name: str):
+        """
+        Appelé par ThemeManager.theme_changed.
+        Recharge le QSS ; les widgets connectés au même signal
+        mettent à jour leurs styles inline automatiquement.
+        """
+        app = QApplication.instance()
+        self._applyStylesheet(app)
+
+        # Mise à jour du libellé du bouton toggle dans la toolbar
+        if hasattr(self, '_themeToggleBtn'):
+            icon = "☀" if theme_name == 'dark' else "🌙"
+            label = f"{icon} Light" if theme_name == 'dark' else f"{icon} Dark"
+            self._themeToggleBtn.setText(label)
+            self._themeToggleBtn.setToolTip(
+                "Passer au thème clair" if theme_name == 'dark'
+                else "Passer au thème sombre"
+            )
+
+        # Mise à jour libellé dans le menu View
+        if hasattr(self, '_toggleThemeAction'):
+            self._toggleThemeAction.setText(
+                "☀  Light Theme" if theme_name == 'dark' else "🌙  Dark Theme"
+            )
+
+        # Force le recalcul des polices / palettes sur la fenêtre principale
+        self._mainWindow.style().unpolish(self._mainWindow)
+        self._mainWindow.style().polish(self._mainWindow)
+        self._mainWindow.update()
+
+        # Mise à jour de la barre de status
+        self._statusBar.showMessage(
+            f"Thème {'sombre' if theme_name == 'dark' else 'clair'} appliqué"
+        )
 
     # ------------------------------------------------------------------
     # Menu bar
@@ -202,6 +244,7 @@ class CSUIAllBuilder(CSUIBuilder):
     def _buildMenuBar(self):
         menuBar = self._mainWindow.menuBar()
 
+        # ── Menu File ──
         fileMenu = menuBar.addMenu("File")
         loadAction = QAction("Load Image...", self._mainWindow)
         saveAction = QAction("Save Image...", self._mainWindow)
@@ -217,6 +260,7 @@ class CSUIAllBuilder(CSUIBuilder):
         saveAction.triggered.connect(self.saveImage)
         exitAction.triggered.connect(self._mainWindow.close)
 
+        # ── Menu View ──
         viewMenu = menuBar.addMenu("View")
         self._toggleLeftAction  = QAction("Hide Control Panel", self._mainWindow)
         self._toggleRightAction = QAction("Hide Side Panel",    self._mainWindow)
@@ -227,15 +271,22 @@ class CSUIAllBuilder(CSUIBuilder):
         self._toggleLeftAction.triggered.connect(self._toggleLeftPanel)
         self._toggleRightAction.triggered.connect(self._toggleRightPanel)
 
+        viewMenu.addSeparator()
+
+        # ── Toggle thème ──
+        self._toggleThemeAction = QAction("☀  Light Theme", self._mainWindow)
+        self._toggleThemeAction.setShortcut("Ctrl+T")
+        self._toggleThemeAction.setToolTip("Basculer entre thème sombre et clair (Ctrl+T)")
+        self._toggleThemeAction.triggered.connect(self._onThemeToggle)
+        viewMenu.addAction(self._toggleThemeAction)
+
     # ------------------------------------------------------------------
     # Left panel
     # ------------------------------------------------------------------
     def _buildLeftPanel(self, lightsScene):
+        # objectName "leftPanel" → stylisé par le QSS
         self._leftPanel = QWidget()
         self._leftPanel.setObjectName("leftPanel")
-        self._leftPanel.setStyleSheet(
-            "QWidget#leftPanel { background-color:#2b2b2b; border-right:1px solid #1a1a1a; }"
-        )
         self._leftPanel.setFixedWidth(CSUIBuilder.template['uiControlWidget_size'][0])
 
         outerLayout = QVBoxLayout(self._leftPanel)
@@ -274,8 +325,6 @@ class CSUIAllBuilder(CSUIBuilder):
             lightControl._controller = lightController
             lightControl.exposure_changed.connect(lightController.on_exposure_changed)
             lightControl.position_changed.connect(lightController.on_position_changed)
-
-            # Connexion du bouton couleur -> popup
             lightControl.color_requested.connect(lightController.on_color_requested)
             lightControl.color_requested.connect(
                 lambda checked=False, lc=lightControl: self._openColorWheel(lc)
@@ -285,25 +334,23 @@ class CSUIAllBuilder(CSUIBuilder):
         self._controlWidget._layout.addWidget(_hline())
         self._controlWidget._layout.addWidget(_section_label("Post-Processing"))
 
-        # Auto Exposure
         ae = colorStudioModel.AE_Ymean(Ytarget=0.5, exposure=0.0)
         lightsScene.addPostProcess(ae)
         aeSection = colorStudioWidget.CSQCollapsibleSection("  Auto Exposure", expanded=True)
         AE_layout = colorStudioWidget.CSQAEControlLayout(None)
         aeSection.addWidget(AE_layout)
         self._controlWidget._layout.addWidget(aeSection)
-        
+
         self._ae_controller = colorStudioController.CSAEController(lightsScene, ae, [self._renderWidget])
         AE_layout.exposure_changed.connect(self._ae_controller.on_exposure_changed)
 
-        # Saturation
         sat = colorStudioModel.Saturation()
         lightsScene.addPostProcess(sat)
         satSection = colorStudioWidget.CSQCollapsibleSection("  Saturation", expanded=True)
         sat_layout = colorStudioWidget.CSQSaturationLayout(None)
         satSection.addLayout(sat_layout)
         self._controlWidget._layout.addWidget(satSection)
-        
+
         self._sat_controller = colorStudioController.CSSaturationController(lightsScene, sat, [self._renderWidget])
         sat_layout.linear_saturation_changed.connect(self._sat_controller.on_linear_saturation_changed)
         sat_layout.gamma_saturation_changed.connect(self._sat_controller.on_gamma_saturation_changed)
@@ -316,14 +363,13 @@ class CSUIAllBuilder(CSUIBuilder):
     # ------------------------------------------------------------------
     def _buildRightZone(self, lightsScene):
         container = QWidget()
-        container.setStyleSheet("background:#2b2b2b;")
         hLayout = QHBoxLayout(container)
         hLayout.setContentsMargins(0, 0, 0, 0)
         hLayout.setSpacing(0)
 
-        # Render
+        # objectName "renderContainer" → stylisé par QSS
         renderContainer = QWidget()
-        renderContainer.setStyleSheet("background:#1e1e1e;")
+        renderContainer.setObjectName("renderContainer")
         renderLayout = QVBoxLayout(renderContainer)
         renderLayout.setContentsMargins(0, 0, 0, 0)
         renderLayout.setSpacing(0)
@@ -340,11 +386,11 @@ class CSUIAllBuilder(CSUIBuilder):
     # Render toolbar
     # ------------------------------------------------------------------
     def _buildRenderToolbar(self):
+        # objectName "renderToolbar" → stylisé par QSS
         toolbar = QWidget()
+        toolbar.setObjectName("renderToolbar")
         toolbar.setFixedHeight(36)
-        toolbar.setStyleSheet(
-            "QWidget { background-color:#222222; border-bottom:1px solid #1a1a1a; }"
-        )
+
         layout = QHBoxLayout(toolbar)
         layout.setContentsMargins(12, 0, 12, 0)
         layout.setSpacing(6)
@@ -365,11 +411,16 @@ class CSUIAllBuilder(CSUIBuilder):
         loadBtn.clicked.connect(self.loadImage)
         saveBtn.clicked.connect(self.saveImage)
 
+        # ── Bouton toggle thème ────────────────
+        self._themeToggleBtn = self._iconBtn("☀ Light", "Passer au thème clair (Ctrl+T)")
+        self._themeToggleBtn.clicked.connect(self._onThemeToggle)
+
         layout.addWidget(self._toggleLeftBtn)
         layout.addWidget(renderLbl)
         layout.addStretch()
         layout.addWidget(loadBtn)
         layout.addWidget(saveBtn)
+        layout.addWidget(self._themeToggleBtn)
         layout.addWidget(self._toggleRightBtn)
         return toolbar
 
@@ -389,14 +440,12 @@ class CSUIAllBuilder(CSUIBuilder):
         return btn
 
     # ------------------------------------------------------------------
-    # Side panel  (uniquement 3D — la roue est maintenant un popup)
+    # Side panel
     # ------------------------------------------------------------------
     def _buildSidePanel(self, lightsScene):
+        # objectName "sidePanel" → stylisé par QSS
         self._sidePanel = QWidget()
         self._sidePanel.setObjectName("sidePanel")
-        self._sidePanel.setStyleSheet(
-            "QWidget#sidePanel { background-color:#272727; border-left:1px solid #1a1a1a; }"
-        )
 
         cw, ch = CSUIBuilder.template['uiColor3DWidget_size']
         self._sidePanel.setFixedWidth(cw + 16)
@@ -405,12 +454,10 @@ class CSUIAllBuilder(CSUIBuilder):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
-        # Title bar
+        # objectName "sideTitleBar" → stylisé par QSS
         titleBar = QWidget()
+        titleBar.setObjectName("sideTitleBar")
         titleBar.setFixedHeight(36)
-        titleBar.setStyleSheet(
-            "QWidget { background-color:#222222; border-bottom:1px solid #1a1a1a; }"
-        )
         titleLayout = QHBoxLayout(titleBar)
         titleLayout.setContentsMargins(12, 0, 12, 0)
         sideLbl = QLabel("VISUALIZATION")
@@ -434,7 +481,6 @@ class CSUIAllBuilder(CSUIBuilder):
         color3DSection.addWidget(self._color3DWidget)
         layout.addWidget(color3DSection)
 
-        # Hint pour la roue
         hintLbl = QLabel("")
         hintLbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
         hintLbl.setStyleSheet(
@@ -444,7 +490,7 @@ class CSUIAllBuilder(CSUIBuilder):
         layout.addWidget(hintLbl)
         layout.addStretch()
 
-        # Color wheel controller (popup partage)
+        # Color wheel controller
         colorWheelController = colorStudioController.CSColorWheelController(
             lightsScene,
             None,
@@ -466,13 +512,9 @@ class CSUIAllBuilder(CSUIBuilder):
     # Popup color wheel
     # ------------------------------------------------------------------
     def _openColorWheel(self, lightControlLayout):
-        """Ouvre la roue pres du bouton couleur du panneau de controle."""
         self._activeLightControlLayout = lightControlLayout
-        # Mise a jour du controleur de la roue sur la bonne lumiere
         if hasattr(self, '_colorWheelWidget') and self._colorWheelWidget._controller is not None:
             self._colorWheelWidget._controller._scene = lightControlLayout._controller._scene
-
-        # Toggle : ouvre si fermé, ferme si déjà ouvert sur ce bouton
         self._colorWheelWidget.toggleNearWidget(lightControlLayout._ccButton)
 
     # ------------------------------------------------------------------
