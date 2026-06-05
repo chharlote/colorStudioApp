@@ -2,26 +2,30 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://chharlote.github.io/colorStudioApp/</loc>
-         <lastmod>2026-06-04</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://chharlote.github.io/colorStudioApp/INSTALL/</loc>
-         <lastmod>2026-06-04</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://chharlote.github.io/colorStudioApp/technique/architecture/</loc>
-         <lastmod>2026-06-04</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://chharlote.github.io/colorStudioApp/technique/theorie/</loc>
-         <lastmod>2026-06-04</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://chharlote.github.io/colorStudioApp/utilisateur/concept/</loc>
-         <lastmod>2026-06-04</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://chharlote.github.io/colorStudioApp/utilisateur/interface/</loc>
-         <lastmod>2026-06-04</lastmod>
+         <lastmod>2026-06-05</lastmod>
+    </url>
+    <url>
+         <loc>https://chharlote.github.io/colorStudioApp/utilisateur/plugin_blender/</loc>
+         <lastmod>2026-06-05</lastmod>
     </url>
 </urlset>

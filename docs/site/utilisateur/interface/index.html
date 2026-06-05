@@ -109,12 +109,260 @@
     
     <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
         <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#interface-utilisateur" class="nav-link">Interface Utilisateur</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#organisation-generale" class="nav-link">Organisation générale</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#ecran-daccueil" class="nav-link">Écran d'accueil</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#barre-doutils" class="nav-link">Barre d'outils</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#panneau-de-controle-gauche" class="nav-link">Panneau de contrôle (Gauche)</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#zone-de-rendu-centre" class="nav-link">Zone de rendu (Centre)</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#visualisation-3d-chromaticity-droite" class="nav-link">Visualisation 3D — Chromaticity (Droite)</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#selecteur-de-couleur" class="nav-link">Sélecteur de couleur</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#barre-de-statut" class="nav-link">Barre de statut</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#menu-file" class="nav-link">Menu File</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#raccourcis-clavier" class="nav-link">Raccourcis clavier</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#flux-de-travail-typique" class="nav-link">Flux de travail typique</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#notes-et-conseils" class="nav-link">Notes et conseils</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
         </ul>
     </div>
 </div></div>
                     <div class="col-md-9" role="main">
 
-</div>
+<h1 id="interface-utilisateur">Interface Utilisateur</h1>
+<p>Cette section décrit les différents éléments visuels de <strong>ColorStudio</strong>, leur agencement et comment les utiliser pour contrôler l'éclairage de votre scène.</p>
+<h2 id="organisation-generale">Organisation générale</h2>
+<p>L'interface de ColorStudio est organisée selon une disposition en trois zones verticales, complétées par une barre d'outils en haut et une barre de statut en bas :</p>
+<ul>
+<li><strong>Panneau de contrôle</strong> (à gauche) : paramètres des lumières et post-processing</li>
+<li><strong>Zone de rendu</strong> (au centre) : visualisation du résultat composité</li>
+<li><strong>Panneau de visualisation 3D</strong> (à droite) : représentation tridimensionnelle de la chromaticité</li>
+</ul>
+<p>Cette séparation favorise une utilisation fluide : modifier les paramètres à gauche produit un retour immédiat au centre, tandis que le panneau droit offre une analyse chromatiométrique.</p>
+<h2 id="ecran-daccueil">Écran d'accueil</h2>
+<p>Au lancement de l'application, un <strong>écran de bienvenue</strong> s'affiche avant le chargement de toute scène. Il propose un bouton unique :</p>
+<ul>
+<li><strong>"Ouvrir un fichier JSON"</strong> : ouvre un dialogue de sélection de fichier</li>
+</ul>
+<p>Cet écran offre aussi un lien direct vers le chargement. Une fois qu'un fichier JSON est chargé avec succès, les trois panneaux remplacent cet écran.</p>
+<h2 id="barre-doutils">Barre d'outils</h2>
+<p>Située en haut du centre d'affichage, la barre d'outils regroupe les actions rapides :</p>
+<table>
+<thead>
+<tr>
+<th>Contrôle</th>
+<th>Raccourci</th>
+<th>Fonction</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>&lt; Panel</strong></td>
+<td>Ctrl+1</td>
+<td>Afficher ou masquer le panneau de contrôle (gauche)</td>
+</tr>
+<tr>
+<td><strong>Load JSON</strong></td>
+<td>Ctrl+O</td>
+<td>Charger un nouveau fichier de configuration</td>
+</tr>
+<tr>
+<td><strong>Save</strong></td>
+<td>Ctrl+S</td>
+<td>Exporter le rendu actuel en image PNG</td>
+</tr>
+<tr>
+<td><strong>Light/Dark</strong></td>
+<td>Ctrl+T</td>
+<td>Basculer entre les thèmes clair et sombre</td>
+</tr>
+<tr>
+<td><strong>Panel &gt;</strong></td>
+<td>Ctrl+2</td>
+<td>Afficher ou masquer la visualisation 3D (droite)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="panneau-de-controle-gauche">Panneau de contrôle (Gauche)</h2>
+<p>Une fois un fichier JSON chargé, le panneau gauche contient deux catégories de contrôles.</p>
+<h3 id="sections-des-lumieres">Sections des lumières</h3>
+<p>Chaque source lumineuse présente dans la scène s'affiche sous forme d'une <strong>section repliable</strong> portant le nom de la lumière. Cliquez sur le titre pour agrandir ou réduire la section.</p>
+<p>Chaque section lumineuse contient trois types de contrôles :</p>
+<ul>
+<li><strong>Position X, Y, Z</strong> : trois curseurs pour déplacer la lumière dans l'espace 3D (plages typiquement entre -5 et +5)</li>
+<li><strong>Exposition</strong> : un curseur pour régler l'intensité lumineuse (plage : 0 à 10+)</li>
+<li><strong>Couleur</strong> : un bouton coloré qui ouvre le sélecteur de couleur lors d'un clic</li>
+</ul>
+<h3 id="post-processing">Post-Processing</h3>
+<p>La section <strong>Post-Processing</strong> regroupe les traitements globaux appliqués après la composition des lumières. Deux sous-sections la composent :</p>
+<h4 id="auto-exposure">Auto Exposure</h4>
+<ul>
+<li><strong>Y Target</strong> : luminosité moyenne cible (plage 0.0 à 1.0 ; 0.5 = exposition neutre)</li>
+<li><strong>Exposition</strong> : ajustement additif de l'exposition globale</li>
+</ul>
+<h4 id="saturation">Saturation</h4>
+<ul>
+<li><strong>Linear Saturation</strong> : saturation directe dans l'espace RGB (0 = désaturé, 1 = normal)</li>
+<li><strong>Gamma Saturation</strong> : saturation perceptuelle suivant la courbe gamma (plus naturelle)</li>
+</ul>
+<h2 id="zone-de-rendu-centre">Zone de rendu (Centre)</h2>
+<p>La zone centrale affiche l'image composite résultant de l'addition de toutes les lumières pondérées par leurs paramètres respectifs et les traitements de post-processing.</p>
+<ul>
+<li><strong>Pas d'interaction directe</strong> : c'est une zone de visualisation uniquement</li>
+<li><strong>Mise à jour en temps réel</strong> : chaque modification dans le panneau gauche recalcule et rafraîchit cette zone</li>
+<li><strong>Résolution adaptée</strong> : l'image s'ajuste à la taille disponible</li>
+</ul>
+<h2 id="visualisation-3d-chromaticity-droite">Visualisation 3D — Chromaticity (Droite)</h2>
+<p>Le panneau droit affiche un <strong>cube de chromaticité tridimensionnel</strong> interactif permettant d'analyser la distribution des couleurs du rendu.</p>
+<h3 id="principe">Principe</h3>
+<p>La chromaticité est représentée dans l'espace RGB tridimensionnel :</p>
+<ul>
+<li>Axe X : composante rouge</li>
+<li>Axe Y : composante verte</li>
+<li>Axe Z : composante bleue</li>
+</ul>
+<p>Chaque pixel du rendu correspond à un point dans ce cube ; la densité des points indique la prédominance des couleurs.</p>
+<h3 id="controles">Contrôles</h3>
+<ul>
+<li><strong>Rotation</strong> : clic-gauche + déplacement de la souris</li>
+<li><strong>Zoom</strong> : molette de la souris</li>
+<li><strong>Mise à jour</strong> : le cube se met à jour en temps réel lors de modifications des lumières</li>
+</ul>
+<h3 id="interpretation">Interprétation</h3>
+<ul>
+<li><strong>Concentration au centre</strong> : prédominance de lumière neutre (blanc, gris)</li>
+<li><strong>Dispersion vers les coins</strong> : large gamme chromatique avec lumières colorées</li>
+<li><strong>Absence de points dans certaines régions</strong> : ces couleurs ne sont pas présentes dans le rendu</li>
+</ul>
+<h2 id="selecteur-de-couleur">Sélecteur de couleur</h2>
+<p>Quand vous cliquez sur le bouton de couleur d'une lumière, une <strong>fenêtre de sélection de couleur</strong> s'ouvre. Elle fonctionne selon le modèle de couleur HSV (Hue/Saturation/Value).</p>
+<h3 id="interface">Interface</h3>
+<ul>
+<li><strong>Carré de couleur</strong> (partie principale) : permet de sélectionner la teinte (horizontal) et la saturation (vertical)</li>
+<li><strong>Slider vertical</strong> (à droite du carré) : régle la luminosité (Value)</li>
+</ul>
+<h3 id="application">Application</h3>
+<p>Les changements de couleur sont appliqués immédiatement au rendu. Fermez le sélecteur pour valider le choix.</p>
+<h2 id="barre-de-statut">Barre de statut</h2>
+<p>En bas de la fenêtre, une <strong>barre de statut</strong> affiche des informations contextuelles :</p>
+<ul>
+<li>État du chargement (nombre de lumières, chemins de fichiers)</li>
+<li>Messages d'erreur ou d'avertissement</li>
+<li>Confirmation des actions (sauvegarde, changement de thème)</li>
+</ul>
+<h2 id="menu-file">Menu File</h2>
+<p>Le menu <strong>File</strong> (Fichier) du menu bar propose trois actions :</p>
+<ul>
+<li><strong>Load JSON</strong> (Ctrl+O) : charger une configuration de scène</li>
+<li><strong>Save</strong> (Ctrl+S) : exporter le rendu actuel en PNG</li>
+<li><strong>Exit</strong> : quitter l'application</li>
+</ul>
+<h2 id="raccourcis-clavier">Raccourcis clavier</h2>
+<table>
+<thead>
+<tr>
+<th>Raccourci</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ctrl+O</td>
+<td>Charger un fichier JSON</td>
+</tr>
+<tr>
+<td>Ctrl+S</td>
+<td>Sauvegarder l'image de rendu</td>
+</tr>
+<tr>
+<td>Ctrl+T</td>
+<td>Basculer le thème (clair ↔ sombre)</td>
+</tr>
+<tr>
+<td>Ctrl+1</td>
+<td>Afficher/masquer le panneau gauche</td>
+</tr>
+<tr>
+<td>Ctrl+2</td>
+<td>Afficher/masquer le panneau droit</td>
+</tr>
+</tbody>
+</table>
+<h2 id="flux-de-travail-typique">Flux de travail typique</h2>
+<h3 id="charger-une-scene">Charger une scène</h3>
+<ol>
+<li>Lancez ColorStudio</li>
+<li>Cliquez sur <strong>"Ouvrir un fichier JSON"</strong> ou utilisez Ctrl+O</li>
+<li>Sélectionnez un fichier de configuration JSON</li>
+<li>Une barre de progression s'affiche pendant le chargement des images</li>
+<li>Une fois complètement chargée, la scène s'affiche dans la zone centrale</li>
+</ol>
+<h3 id="modifier-leclairage">Modifier l'éclairage</h3>
+<ol>
+<li>Cliquez sur la section d'une lumière dans le panneau gauche pour l'agrandir</li>
+<li>Utilisez les curseurs <strong>Position</strong> pour déplacer la lumière</li>
+<li>Réglez <strong>Exposition</strong> pour ajuster l'intensité</li>
+<li>Cliquez sur le bouton de couleur pour modifier la teinte</li>
+<li>Observez le rendu et le cube de chromaticité se mettre à jour en temps réel</li>
+</ol>
+<h3 id="affiner-le-rendu-global">Affiner le rendu global</h3>
+<ol>
+<li>Développez la section <strong>Post-Processing</strong></li>
+<li>Réglez <strong>Auto Exposure</strong> pour normaliser la luminosité globale</li>
+<li>Utilisez <strong>Saturation</strong> pour contrôler l'intensité des couleurs</li>
+<li>Comparez le cube de chromaticité pour vérifier la distribution des couleurs</li>
+</ol>
+<h3 id="exporter-le-resultat">Exporter le résultat</h3>
+<ol>
+<li>Une fois satisfait de l'éclairage, cliquez sur <strong>"Save"</strong> (Ctrl+S)</li>
+<li>Choisissez un dossier et un nom de fichier</li>
+<li>L'image PNG est sauvegardée avec le rendu final</li>
+</ol>
+<h2 id="notes-et-conseils">Notes et conseils</h2>
+<ul>
+<li><strong>Mise à jour en temps réel</strong> : tous les changements se reflètent immédiatement, permettant une exploration rapide des configurations d'éclairage.</li>
+<li><strong>Thèmes</strong> : le thème clair est adapté aux environnements lumineux ; le thème sombre réduit la fatigue oculaire.</li>
+<li><strong>Masquer/afficher les panneaux</strong> : utilisez Ctrl+1 et Ctrl+2 pour agrandir temporairement la zone de rendu si votre écran est petit.</li>
+<li><strong>Unités</strong> : les positions de lumière sont exprimées dans les unités de la scène 3D originale (définies au moment du rendu Blender).</li>
+</ul></div>
             </div>
         </div>
 

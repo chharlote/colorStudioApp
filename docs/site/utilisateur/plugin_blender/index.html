@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        <link rel="canonical" href="https://chharlote.github.io/colorStudioApp/utilisateur/plugin_blender/">
+        <link rel="shortcut icon" href="../../img/favicon.ico">
+        <title>Intégration Blender : Plugin ColorStudio Exporter - ColorStudio Documentation</title>
+        <link href="../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../css/brands.min.css" rel="stylesheet">
+        <link href="../../css/solid.min.css" rel="stylesheet">
+        <link href="../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../..">ColorStudio Documentation</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href="../.." class="nav-link">Accueil</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Guide Utilisateur</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../concept/" class="dropdown-item">Concept & Principes</a>
+</li>
+                                    
+<li>
+    <a href="../installation.md" class="dropdown-item">Installation</a>
+</li>
+                                    
+<li>
+    <a href="../interface/" class="dropdown-item">Interface & Utilisation</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Documentation Technique</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../technique/theorie/" class="dropdown-item">Fondements Théoriques</a>
+</li>
+                                    
+<li>
+    <a href="../../technique/architecture/" class="dropdown-item">Architecture Logicielle</a>
+</li>
+                                    
+<li>
+    <a href="../../technique/qualite.md" class="dropdown-item">Qualité & Tests</a>
+</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a href="https://github.com/chharlote/colorStudioApp/edit/master/docs/utilisateur/plugin_blender.md" class="nav-link"><i class="fa-brands fa-github"></i> Edit on GitHub</a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#integration-blender-plugin-colorstudio-exporter" class="nav-link">Intégration Blender : Plugin ColorStudio Exporter</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1-installation-du-plugin" class="nav-link">1. Installation du Plugin</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2-acces-a-linterface-ui" class="nav-link">2. Accès à l'interface (UI)</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3-parametrage-et-utilisation" class="nav-link">3. Paramétrage et Utilisation</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4-fonctionnement-technique" class="nav-link">4. Fonctionnement technique</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="integration-blender-plugin-colorstudio-exporter">Intégration Blender : Plugin ColorStudio Exporter</h1>
+<p>Le plugin <strong>ColorStudio Exporter</strong> est un Add-on Blender conçu spécifiquement pour le projet ColorStudio. Il permet d'automatiser entièrement le processus de rendu par passe (une lumière à la fois) et de générer automatiquement le fichier de configuration <code>.json</code> compatible avec l'application.</p>
+<p>Le plugin prend en charge <strong>le format HDR</strong> et <strong>le format PNG</strong>.</p>
+<hr />
+<h2 id="1-installation-du-plugin">1. Installation du Plugin</h2>
+<p>L'installation du plugin se fait de manière standard via les préférences de Blender.</p>
+<ol>
+<li>Téléchargez ou copiez le script Python du plugin et sauvegardez-le sous le nom <code>colorstudio_exporter.py</code>.</li>
+<li>Ouvrez Blender.</li>
+<li>Allez dans le menu <strong>Edit</strong> &gt; <strong>Preferences</strong>.</li>
+<li>Dans le menu de gauche, sélectionnez l'onglet <strong>Add-ons</strong>.</li>
+<li>Cliquez sur le bouton <strong>Install...</strong> en haut à droite.</li>
+<li>Naviguez jusqu'à votre fichier <code>colorstudio_exporter.py</code> et sélectionnez-le.</li>
+<li>Une fois installé, <strong>cochez la case</strong> à côté de <em>Render: ColorStudio Exporter</em> pour l'activer.</li>
+</ol>
+<p><img alt="Fenêtre d'activation du plugin" src="../../assets/img/blender_activation.png" /></p>
+<p>!!! tip "Sauvegarde des préférences"
+    Si vous souhaitez que le plugin soit actif à chaque ouverture de Blender, assurez-vous que l'option <em>Auto-Save Preferences</em> est activée en bas à gauche de la fenêtre des préférences.</p>
+<hr />
+<h2 id="2-acces-a-linterface-ui">2. Accès à l'interface (UI)</h2>
+<p>Une fois le plugin activé, son interface est intégrée directement dans l'espace de travail principal pour une meilleure ergonomie.</p>
+<ol>
+<li>Placez votre curseur dans la <strong>Vue 3D</strong> (3D Viewport) de Blender.</li>
+<li>Appuyez sur la touche <kbd>N</kbd> de votre clavier pour ouvrir le menu latéral droit (N-Panel).</li>
+<li>Cliquez sur le nouvel onglet nommé <strong>ColorStudio</strong>.</li>
+</ol>
+<p><img alt="Interface complet du panneau ColorStudio" src="../../assets/img/blender_vue_plugin_complet.png" /></p>
+<hr />
+<h2 id="3-parametrage-et-utilisation">3. Paramétrage et Utilisation</h2>
+<p>Le panneau propose plusieurs réglages permettant de s'adapter aux différentes phases du projet (test rapide ou rendu final).</p>
+<h3 id="les-parametres">Les paramètres</h3>
+<ul>
+<li><strong>Dossier de sortie</strong> : Permet de choisir le dossier racine où seront exportées les données. Le script créera automatiquement un sous-dossier portant le nom de la scène actuelle.</li>
+<li><strong>Suffixe du JSON</strong> : Permet de nommer le fichier de configuration généré. Le nom final sera au format <code>[NomDeLaScene]_[Suffixe].json</code>. (Par défaut : <em>config</em>).</li>
+<li><strong>Format</strong> : <ul>
+<li><code>HDR (OpenEXR)</code> : Exporte les images en 32-bit. C'est le format requis pour le rendu final et pour valider la gestion du HDR dans ColorStudio.</li>
+<li><code>LDR (JPEG)</code> : Exporte les images en 8-bit. Idéal pour faire des tests rapides avec un poids de fichier minimal.</li>
+</ul>
+</li>
+<li><strong>Limite d'images</strong> : Permet de réduire le nombre d'images calculées sur la trajectoire (de 50 à 250 images). Très utile pour valider un éclairage sans attendre le rendu complet de l'animation.</li>
+</ul>
+<p><img alt="Interface du panneau ColorStudio" src="../../assets/img/blender_vue_plugin_zoom.png" /></p>
+<h3 id="lancer-la-generation">Lancer la génération</h3>
+<p>Une fois vos réglages effectués, cliquez sur le bouton <strong>Générer les passes et le JSON</strong> (marqué par une icône de soleil).</p>
+<p>!!! warning "Attention aux temps de calcul"
+    Blender va figer pendant la génération. Le temps de traitement dépendra de la complexité de votre scène, du moteur de rendu utilisé (Eevee ou Cycles) et de la limite d'images sélectionnée.</p>
+<hr />
+<h2 id="4-fonctionnement-technique">4. Fonctionnement technique</h2>
+<p>Lorsque l'opérateur est lancé, le script effectue les actions suivantes en arrière-plan :</p>
+<ol>
+<li><strong>Isolation des lumières :</strong> Le script identifie toutes les sources lumineuses de type <code>LIGHT</code> dans la scène. Il boucle sur chacune d'entre elles, l'allume, et éteint temporairement toutes les autres.</li>
+<li><strong>Parcours de la trajectoire :</strong> Pour la lumière active, le script fait défiler la timeline de Blender (en respectant la limite d'images définie).</li>
+<li><strong>Rendu :</strong> À chaque frame, une image est rendue et sauvegardée avec la nomenclature stricte attendue par ColorStudio : <code>[NomDeLaLumiere]_[Index].exr</code> (ou <code>.jpg</code>).</li>
+<li><strong>Génération du JSON :</strong> Le script récupère dynamiquement les informations de la scène (nom de la lampe, couleur RVB exacte dans Blender, chemin absolu des dossiers générés, statut HDR) et construit un fichier de configuration <code>.json</code> structuré.</li>
+</ol>
+<h3 id="compatibilite-avec-colorstudio">Compatibilité avec ColorStudio</h3>
+<p>Le fichier JSON généré est directement prêt à être ouvert dans l'interface PyQt6 de ColorStudio. Les chemins d'accès (paths) sont formatés de manière absolue en utilisant des slashs standards <code>/</code> pour garantir une compatibilité totale entre les environnements Windows, macOS et Linux de l'équipe de développement.</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../js/base.js"></script>
+        <script src="../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
