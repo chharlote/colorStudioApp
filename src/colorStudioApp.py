@@ -5,21 +5,9 @@ Color Studio - Rémi Cozot 2019
 new version of 
 Color Studio - Rémi Cozot 2019
 """
-# ----------------------------------------------------------------------------------
-# main changes
-# ----------------------------------------------------------------------------------
-# GUI lib: pygame to pyqt5
-# include 3d color point cloud (modernGL) 
-# ----------------------------------------------------------------------------------
-# version0.0
-# -----------------------------------------------------------------------------------
-# Qt window
-
-# import(s)
-# ----------------------------------------------------------------------------------
 import sys
 
-from PyQt6.QtWidgets import QApplication, QFileDialog
+from PyQt6.QtWidgets import QApplication
 
 import models.colorStudioModel as colorStudioModel
 import views.colorStudioWidget as colorStudioWidget
@@ -32,43 +20,15 @@ print("ColorStudio - Charlotte Germe Luc Telliez Chloé Faillie - 2026")
 print("-------------------------------")
 screenX, screenY = colorStudioWidget.getScreenSize()
 print("screen resolution: ",screenX,"x",screenY)
-colorStudioUIBuilder.CSUIAllBuilder.setTemplate(screenX,screenY)
+colorStudioUIBuilder.CSUIBuilder.setTemplate(screenX,screenY)
 
 # Qt init
 app = QApplication.instance() 
-if not app:  app = QApplication(sys.argv)
+if not app:
+    app = QApplication(sys.argv)
 
-# select input file name
-defaultFilename = "./fichier_json_test1.json"
-inputFilename = sys.argv[1] if len(sys.argv) > 1 else ""
-
-if not inputFilename:
-    inputFilename, _ = QFileDialog.getOpenFileName(
-        None,
-        "Color Studio - Select light-setup file",
-        "",
-        "JSON files (*.json);;All files (*.*)"
-    )
-
-print("ColorStudio: inuput file>", inputFilename)
-
-if not inputFilename:
-    inputFilename = defaultFilename
-    print("ColorStudio: action annulée, utilisation du fichier par défaut >", inputFilename)
-else:
-    print("ColorStudio: input file >", inputFilename)
-
-
-# scene object
-lightsScene = colorStudioModel.Scene()
-# load scene from json
-lightsScene.fromJSON(inputFilename,colorStudioUIBuilder.CSUIBuilder.template['scale'])
-# print scene
-lightsScene.print()
-
-# build GUI according to scene
-ui = colorStudioUIBuilder.CSUIAllBuilder(lightsScene)
+# build GUI (sans scène initiale)
+ui = colorStudioUIBuilder.CSUIAllBuilder()
 
 # run app for event management
 app.exec()
-
