@@ -94,7 +94,7 @@ class HelloWorld2D:
                 }
             ''',
         )
-        self.vbo = ctx.buffer(reserve='1024MB', dynamic=True)
+        self.vbo = ctx.buffer(reserve=reserve, dynamic=True)
         self.vao = ctx.simple_vertex_array(self.prog, self.vbo, 'in_vert', 'in_color')
 
     def pan(self, pos):
@@ -162,6 +162,23 @@ class MyWidgetGL(QModernGLWidget):
         self.VBOdata = colorStudioUtils.img2chromaVertices(img, False)
         self._pan_tool = PanTool()
         self.setWindowTitle("3D Color")
+        
+    def _compute_centroid(self):
+        data = self.VBOdata.reshape(-1, 6)
+        return float(np.mean(data[:, 0])), float(np.mean(data[:, 1]))
+
+    def _build_axes_data(self):
+        g, a = 0.55, 1.0
+        axes = np.array([
+            [-2.0,  0.0, g, g, g, a],
+            [ 2.0,  0.0, g, g, g, a],
+            [ 0.0, -2.0, g, g, g, a],
+            [ 0.0,  2.0, g, g, g, a],
+        ], dtype=np.float32)
+        return axes.reshape(1, -1, 6)
+
+    def _apply_pan(self):
+        self.scene.pan(self._pan_tool.value)
 
     def init(self):
         self.ctx.viewport = (0, 0, self.width(), self.height())
