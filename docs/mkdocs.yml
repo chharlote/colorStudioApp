@@ -2,13 +2,15 @@ site_name: ColorStudio Documentation
 repo_url: "https://github.com/chharlote/colorStudioApp"
 site_url: https://chharlote.github.io/colorStudioApp/
 use_directory_urls: true
-
+markdown_extensions:
+  - admonition
 nav:
   - Accueil: index.md
   - Guide Utilisateur:
       - Concept & Principes: utilisateur/concept.md
       - Installation: utilisateur/installation.md
       - Interface & Utilisation: utilisateur/interface.md
+      - Plugins & Extensions: utilisateur/plugin_blender.md
   - Documentation Technique:
       - Fondements Théoriques: technique/theorie.md
       - Architecture Logicielle: technique/architecture.md
