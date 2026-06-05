@@ -229,9 +229,16 @@ class CSUIAllBuilder(CSUIBuilder):
         self._lightControllers         = []
         self._loaderThread             = None
 
+        self._appIcon = self._loadAppIcon()
+        if self._appIcon:
+            app.setWindowIcon(self._appIcon)
+            QApplication.setWindowIcon(self._appIcon)
+
         # ── Fenêtre principale ──────────────────
         self._mainWindow = QMainWindow()
         self._mainWindow.setWindowTitle("Color Studio")
+        if self._appIcon:
+            self._mainWindow.setWindowIcon(self._appIcon)
         self._mainWindow.setMinimumSize(900, 600)
 
         self._buildMenuBar()
@@ -296,6 +303,8 @@ class CSUIAllBuilder(CSUIBuilder):
             self._mainWindow.setWindowState(QtCore.Qt.WindowState.WindowMaximized)
         except Exception:
             pass
+        if self._appIcon:
+            self._mainWindow.setWindowIcon(self._appIcon)
         self._mainWindow.showMaximized()
 
         ThemeManager.instance().theme_changed.connect(self._onThemeChanged)
@@ -334,6 +343,16 @@ class CSUIAllBuilder(CSUIBuilder):
         self._mainWindow.style().unpolish(self._mainWindow)
         self._mainWindow.style().polish(self._mainWindow)
         self._mainWindow.update()
+
+    def _loadAppIcon(self):
+        base_dir = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '..', 'assets', 'images'))
+        ico_path = os.path.join(base_dir, 'colorstudiologo.ico')
+        png_path = os.path.join(base_dir, 'colorstudiologo.png')
+        if os.path.exists(ico_path):
+            return QIcon(ico_path)
+        if os.path.exists(png_path):
+            return QIcon(png_path)
+        return None
 
     # ------------------------------------------------------------------
     # Menu bar
